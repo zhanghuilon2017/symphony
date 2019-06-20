@@ -1,3 +1,22 @@
+<#--
+
+    Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+    Copyright (C) 2012-present, b3log.org
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
 <#include "macro-admin.ftl">
 <@admin "articles">
 <div class="wrapper">
@@ -26,12 +45,6 @@
 
             <label for="articleUpdateTime">${updateTimeLabel}</label>
             <input type="text" id="articleUpdateTime" name="articleUpdateTime" value="${article.articleUpdateTime?c}" />
-
-            <label for="syncWithSymphonyClient">${symClientSyncLabel}</label>
-            <input type="text" id="syncWithSymphonyClient" name="syncWithSymphonyClient" value="${article.syncWithSymphonyClient?c}" readonly="readonly" />
-
-            <label for="clientArticleId">${clientArticleIdLabel}</label>
-            <input type="text" id="clientArticleId" name="clientArticleId" value="${article.clientArticleId}" readonly="readonly" />
 
             <label for="articleEditorType">${eidotrTypeLabel}</label>
             <input type="text" id="articleEditorType" name="articleEditorType" value="${article.articleEditorType}" readonly="readonly" />
@@ -75,6 +88,9 @@
                 <label for="articleRewardPoint">${rewardPointLabel}</label>
                 <input type="text" id="articleRewardPoint" name="articleRewardPoint" value="${article.articleRewardPoint?c}"/>
 
+                <label for="articleQnAOfferPoint">${qnaOfferPointLabel}</label>
+                <input type="text" id="articleQnAOfferPoint" name="articleQnAOfferPoint" value="${article.articleQnAOfferPoint?c}"/>
+
                 <label>${perfectLabel}</label>
                 <select id="articlePerfect" name="articlePerfect">
                     <option value="0"<#if 0 == article.articlePerfect> selected</#if>>${noLabel}</option>
@@ -91,6 +107,7 @@
                 <select id="articleStatus" name="articleStatus">
                     <option value="0"<#if 0 == article.articleStatus> selected</#if>>${validLabel}</option>
                     <option value="1"<#if 1 == article.articleStatus> selected</#if>>${banLabel}</option>
+                    <option value="2"<#if 2 == article.articleStatus> selected</#if>>${lockLabel}</option>
                 </select>
 
                 <label>${articleTypeLabel}</label>
@@ -99,6 +116,7 @@
                     <option value="1"<#if 1 == article.articleType> selected</#if>>${discussionLabel}</option>
                     <option value="2"<#if 2 == article.articleType> selected</#if>>${cityBroadcastLabel}</option>
                     <option value="3"<#if 3 == article.articleType> selected</#if>>${thoughtLabel}</option>
+                    <option value="5"<#if 5 == article.articleType> selected</#if>>${qnaLabel}</option>
                 </select>
 
                 <label for="articleGoodCnt">${goodCntLabel}</label>
@@ -107,13 +125,20 @@
                 <label for="articleBadCnt">${badCntLabel}</label>
                 <input type="text" id="articleBadCnt" name="articleBadCnt" value="${article.articleBadCnt}" />
                 
-                <label form="articleAnonymousView">${miscAllowAnonymousViewLabel}</label>
+                <label for="articleAnonymousView">${miscAllowAnonymousViewLabel}</label>
                 <select id="articleAnonymousView" name="articleAnonymousView">
                     <option value="0"<#if 0 == article.articleAnonymousView> selected</#if>>${useGlobalLabel}</option>
                     <option value="1"<#if 1 == article.articleAnonymousView> selected</#if>>${noLabel}</option>
                     <option value="2"<#if 2 == article.articleAnonymousView> selected</#if>>${yesLabel}</option>
                 </select>
 
+                <label for="articleId">${pushLabel} Email  ${sortLabel}</label>
+                <input type="number" id="articlePushOrder" name="articlePushOrder" value="${article.articlePushOrder}" />
+                <label>${showInListLabel}</label>
+                <select id="articleShowInList" name="articleShowInList">
+                    <option value="1"<#if 1==article.articleShowInList> selected</#if>>${yesLabel}</option>
+                    <option value="0"<#if 0==article.articleShowInListe> selected</#if>>${noLabel}</option>
+                </select>
                 <br/><br/>
                 <button type="submit" class="green fn-right" >${submitLabel}</button>
             </form>
@@ -183,7 +208,7 @@
                 <input type="text" id="articleId" name="articleId" value="${article.oId}" readonly="readonly"/>
 
                 <br/><br/>
-                <button type="submit" class="green fn-right" >${submitLabel}</button>
+                <button type="submit" class="red fn-right" >${submitLabel}</button>
             </form>
         </div>
     </div>

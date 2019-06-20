@@ -1,23 +1,25 @@
 /*
- * Symphony - A modern community (forum/SNS/blog) platform written in Java.
- * Copyright (C) 2012-2017,  b3log.org & hacpai.com
+ * Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+ * Copyright (C) 2012-present, b3log.org
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package org.b3log.symphony.model;
 
 import org.apache.commons.lang.StringUtils;
+import org.b3log.latke.Latkes;
+import org.b3log.latke.model.User;
 import org.b3log.symphony.util.Symphonys;
 import org.json.JSONObject;
 
@@ -26,11 +28,21 @@ import org.json.JSONObject;
  *
  * @author <a href="http://88250.b3log.org">Liang Ding</a>
  * @author Bill Ho
- * @version 2.8.1.13, Jan 20, 2017
+ * @version 2.16.0.1, Jan 10, 2019
  * @see org.b3log.latke.model.User
  * @since 0.2.0
  */
 public final class UserExt {
+
+    /**
+     * Key of index redirect URL.
+     */
+    public static final String USER_INDEX_REDIRECT_URL = "userIndexRedirectURL";
+
+    /**
+     * Key of status of using forward page.
+     */
+    public static final String USER_FORWARD_PAGE_STATUS = "userForwardPageStatus";
 
     /**
      * Key of user guide step.
@@ -58,6 +70,11 @@ public final class UserExt {
     public static final String USER_SUB_MAIL_STATUS = "userSubMailStatus";
 
     /**
+     * Key of user auto watch article after reply status.
+     */
+    public static final String USER_REPLY_WATCH_ARTICLE_STATUS = "userReplyWatchArticleStatus";
+
+    /**
      * Key of user subscription mail send time.
      */
     public static final String USER_SUB_MAIL_SEND_TIME = "userSubMailSendTime";
@@ -73,9 +90,14 @@ public final class UserExt {
     public static final String USER_LIST_PAGE_SIZE = "userListPageSize";
 
     /**
-     * Key of forge link status.
+     * Key of user list view mode.
      */
-    public static final String USER_FORGE_LINK_STATUS = "userForgeLinkStatus";
+    public static final String USER_LIST_VIEW_MODE = "userListViewMode";
+
+    /**
+     * Key of user breezemoons status
+     */
+    public static final String USER_BREEZEMOON_STATUS = "userBreezemoonStatus";
 
     /**
      * Key of user point status.
@@ -123,11 +145,6 @@ public final class UserExt {
     public static final String USER_ONLINE_STATUS = "userOnlineStatus";
 
     /**
-     * Key of user timeline status.
-     */
-    public static final String USER_TIMELINE_STATUS = "userTimelineStatus";
-
-    /**
      * Key of user User-Agent status.
      */
     public static final String USER_UA_STATUS = "userUAStatus";
@@ -146,11 +163,6 @@ public final class UserExt {
      * Key of user comment view mode.
      */
     public static final String USER_COMMENT_VIEW_MODE = "userCommentViewMode";
-
-    /**
-     * Key of sync to client.
-     */
-    public static final String SYNC_TO_CLIENT = "syncWithSymphonyClient";
 
     /**
      * Key of user geo status.
@@ -293,26 +305,6 @@ public final class UserExt {
     public static final String USER_AVATAR_URL = "userAvatarURL";
 
     /**
-     * Key of user B3log key.
-     */
-    public static final String USER_B3_KEY = "userB3Key";
-
-    /**
-     * Key of user B3log client add article URL.
-     */
-    public static final String USER_B3_CLIENT_ADD_ARTICLE_URL = "userB3ClientAddArticleURL";
-
-    /**
-     * Key of user B3log client update article URL.
-     */
-    public static final String USER_B3_CLIENT_UPDATE_ARTICLE_URL = "userB3ClientUpdateArticleURL";
-
-    /**
-     * Key of user B3log client add comment URL.
-     */
-    public static final String USER_B3_CLIENT_ADD_COMMENT_URL = "userB3ClientAddCommentURL";
-
-    /**
      * Key of online flag.
      */
     public static final String USER_ONLINE_FLAG = "userOnlineFlag";
@@ -405,21 +397,22 @@ public final class UserExt {
      */
     public static final int USER_GUIDE_STEP_STAR_PROJECT = 4;
 
-    //// Default Commenter constants
+    //// Email constant
     /**
-     * Default commenter name.
+     * Builtin email suffix.
      */
-    public static final String DEFAULT_CMTER_NAME = "Default Commenter";
+    public static final String USER_BUILTIN_EMAIL_SUFFIX = "@sym.b3log.org";
+
+    //// Community Bot constants
+    /**
+     * Bot name.
+     */
+    public static final String COM_BOT_NAME = "ComBot";
 
     /**
-     * Default commenter email.
+     * Bot email.
      */
-    public static final String DEFAULT_CMTER_EMAIL = "default_commenter@b3log.org";
-
-    /**
-     * Default commenter role.
-     */
-    public static final String DEFAULT_CMTER_ROLE = "defaultCommenterRole";
+    public static final String COM_BOT_EMAIL = "combot" + USER_BUILTIN_EMAIL_SUFFIX;
 
     //// Null user
     /**
@@ -459,45 +452,40 @@ public final class UserExt {
      */
     public static final int USER_STATUS_C_INVALID_LOGIN = 3;
 
-    //// Join point rank constants
     /**
-     * User join point rank - join.
+     * User status - deactivated.
      */
-    public static final int USER_JOIN_POINT_RANK_C_JOIN = 0;
+    public static final int USER_STATUS_C_DEACTIVATED = 4;
+
+    //// Join join XXX rank constants
+    /**
+     * User join XXX rank - join.
+     */
+    public static final int USER_JOIN_XXX_C_JOIN = 0;
 
     /**
-     * User join point rank - not join.
+     * User join XXX rank - not join.
      */
-    public static final int USER_JOIN_POINT_RANK_C_NOT_JOIN = 1;
+    public static final int USER_JOIN_XXX_C_NOT_JOIN = 1;
 
+    //// User XXX status constants
     /**
-     * User join used point rank - join.
-     */
-    public static final int USER_JOIN_USED_POINT_RANK_C_JOIN = 0;
-
-    /**
-     * User join used point rank - not join.
-     */
-    public static final int USER_JOIN_USED_POINT_RANK_C_NOT_JOIN = 1;
-
-    //// User XXX Status constants
-    /**
-     * User XXX (notify/point/follower/following article/following tag/following user/comment/article) status - public.
+     * User XXX (notify/point/follower/following article/watching article/following tag/following user/comment/article/breezemoon) status - public.
      */
     public static final int USER_XXX_STATUS_C_PUBLIC = 0;
 
     /**
-     * User XXX (notify/point/follower/following article/watching article/following tag/following user/comment/article) status - private.
+     * User XXX (notify/point/follower/following article/watching article/following tag/following user/comment/article/breezemoon) status - private.
      */
     public static final int USER_XXX_STATUS_C_PRIVATE = 1;
 
     /**
-     * User XXX (UA) status - enabled.
+     * User XXX status - enabled.
      */
     public static final int USER_XXX_STATUS_C_ENABLED = 0;
 
     /**
-     * User XXX (UA) status - disabled.
+     * User XXX status - disabled.
      */
     public static final int USER_XXX_STATUS_C_DISABLED = 1;
 
@@ -565,6 +553,17 @@ public final class UserExt {
      */
     public static final int USER_APP_ROLE_C_PAINTER = 1;
 
+    //// List view mode constants
+    /**
+     * List view mode - Only title.
+     */
+    public static final int USER_LIST_VIEW_MODE_TITLE = 0;
+
+    /**
+     * List view mode - Title & Abstract.
+     */
+    public static final int USER_LIST_VIEW_MODE_TITLE_ABSTRACT = 1;
+
     /**
      * Private constructor.
      */
@@ -625,10 +624,28 @@ public final class UserExt {
         return hex.substring(0, 6);
     }
 
+
+    /**
+     * Checks the specified email whether in a valid mail domain.
+     *
+     * @param email the specified email
+     * @return {@code true} if it is, returns {@code false} otherwise
+     */
+    public static boolean isValidMailDomain(final String email) {
+        final String whitelistMailDomains = Symphonys.MAIL_DOMAINS;
+        if (StringUtils.isBlank(whitelistMailDomains)) {
+            return true;
+        }
+
+        final String domain = StringUtils.substringAfter(email, "@");
+
+        return StringUtils.containsIgnoreCase(whitelistMailDomains, domain);
+    }
+
     /**
      * Checks the specified user name whether is a reserved user name.
      *
-     * @param userName the specified tag string
+     * @param userName the specified username
      * @return {@code true} if it is, returns {@code false} otherwise
      */
     public static boolean isReservedUserName(final String userName) {
@@ -638,17 +655,8 @@ public final class UserExt {
             }
         }
 
-        return false;
-    }
+        return StringUtils.containsIgnoreCase(userName, UserExt.ANONYMOUS_USER_NAME);
 
-    /**
-     * Checks whether the specified user updated avatar.
-     *
-     * @param user the specified user
-     * @return {@code true} if the specified user updated avatar, returns {@code false} otherwise
-     */
-    public static boolean updatedAvatar(final JSONObject user) {
-        return user.optString(UserExt.USER_AVATAR_URL).contains("_");
     }
 
     /**
@@ -659,5 +667,25 @@ public final class UserExt {
      */
     public static boolean finshedGuide(final JSONObject user) {
         return UserExt.USER_GUIDE_STEP_FIN == user.optInt(UserExt.USER_GUIDE_STEP);
+    }
+
+    /**
+     * Gets user link with the specified user.
+     *
+     * @param user the specified user
+     * @return user link
+     */
+    public static String getUserLink(final JSONObject user) {
+        return getUserLink(user.optString(User.USER_NAME));
+    }
+
+    /**
+     * Gets user link with the specified user name.
+     *
+     * @param userName the specified user name
+     * @return user link
+     */
+    public static String getUserLink(final String userName) {
+        return "<a href=\"" + Latkes.getServePath() + "/member/" + userName + "\">" + userName + "</a> ";
     }
 }

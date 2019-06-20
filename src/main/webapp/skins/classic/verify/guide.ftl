@@ -1,3 +1,22 @@
+<#--
+
+    Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+    Copyright (C) 2012-present, b3log.org
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
 <#include "../macro-head.ftl">
 <!DOCTYPE html>
 <html>
@@ -12,7 +31,7 @@
         <#include "../header.ftl">
         <div class="main">
             <div class="wrapper verify guide">
-                <div class="intro content-reset">
+                <div class="intro vditor-reset">
                     <dl>
                         <dt class="current"><span class="index">1</span>${guideUploadAvatarLabel}</dt>
                         <dd class="ft-gray ft-smaller">${guideUploadAvatarTipLabel}</dd>
@@ -114,15 +133,15 @@
                                     <span class="ft-gray">${getStartTipLabel}</span>
                                 </li>
                                 <li>
-                                    <a href="${servePath}/tag/user_guide">${basicLabel}</a>
+                                    <a href="${servePath}/about">${basicLabel}</a>
                                     <span class="ft-gray">${basicTipLabel}</span>
                                 </li>
                                 <li>
-                                    <a href="https://hacpai.com/article/1474030007391">${hotKeyLabel}</a>
+                                    <a href="${servePath}/about">${hotKeyLabel}</a>
                                     <span class="ft-gray">${hotKeyTipLabel}</span>
                                 </li>
                                 <li>
-                                    <a href="https://hacpai.com/guide/markdown">Markdown ${tutorialLabel}</a>
+                                    <a href="${servePath}/about">Markdown ${tutorialLabel}</a>
                                     <span class="ft-gray">${markdownTutorialTipLabel}</span>
                                 </li>
                             </ul>
@@ -146,7 +165,6 @@
 
             Settings.initUploadAvatar({
                 id: 'avatarUpload',
-                qiniuUploadToken: '${qiniuUploadToken}',
                 userId: '${currentUser.oId}',
                 maxSize: '${imgMaxSize?c}'
             }, function (data) {
@@ -154,14 +172,6 @@
                 $('#avatarURL').css("background-image", 'url(' + uploadKey + ')').data('imageurl', uploadKey);
                 $('#avatarURLMid').css("background-image", 'url(' + uploadKey + ')').data('imageurl', uploadKey);
                 $('#avatarURLNor').css("background-image", 'url(' + uploadKey + ')').data('imageurl', uploadKey);
-
-                Settings.updateAvatar('${csrfToken}');
-            }, function (data) {
-                var qiniuKey = data.result.key,
-                        t = new Date().getTime();
-                $('#avatarURL').css("background-image", 'url(${qiniuDomain}/' + qiniuKey + '?' + t + ')').data('imageurl', '${qiniuDomain}/' + qiniuKey);
-                $('#avatarURLMid').css("background-image", 'url(${qiniuDomain}/' + qiniuKey + '?' + t + ')').data('imageurl', '${qiniuDomain}/' + qiniuKey);
-                $('#avatarURLNor').css("background-image", 'url(${qiniuDomain}/' + qiniuKey + '?' + t + ')').data('imageurl', '${qiniuDomain}/' + qiniuKey);
 
                 Settings.updateAvatar('${csrfToken}');
             });

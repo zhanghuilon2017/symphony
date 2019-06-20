@@ -1,3 +1,22 @@
+<#--
+
+    Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+    Copyright (C) 2012-present, b3log.org
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
 <#include "macro-head.ftl">
 <#include "macro-list.ftl">
 <#include "macro-pagination.ftl">
@@ -36,6 +55,9 @@
                                 <a pjax-title="${goodCmtsLabel} - ${symphonyLabel}"  class="<#if "/good" == current>ft-gray</#if>" href="${servePath}/recent/good"><svg class="fn-text-top"><use xlink:href="#thumbs-up"></use></svg> ${goodCmtsLabel}</a>
                                 /
                                 <a pjax-title="${recentCommentLabel} - ${symphonyLabel}"  class="<#if "/reply" == current>ft-gray</#if>" href="${servePath}/recent/reply">${recentCommentLabel}</a>
+                            <a class="recent-rss" href="${servePath}/rss/recent.xml">
+                              <svg><use xlink:href="#iconRss"></use></svg>
+                            </a>
                             </span>
                         </div>
                         <@list listData=latestArticles/>
@@ -62,6 +84,10 @@
                 titleSuffix: '',
                 filter: function(href){
                     return 0 > href.indexOf('${servePath}/recent');
+                },
+                callback: function () {
+                    Util.parseMarkdown();
+                    Util.parseHljs()
                 }
             });
             NProgress.configure({ showSpinner: false });

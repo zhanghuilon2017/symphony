@@ -1,26 +1,26 @@
 /*
- * Symphony - A modern community (forum/SNS/blog) platform written in Java.
- * Copyright (C) 2012-2017,  b3log.org & hacpai.com
+ * Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+ * Copyright (C) 2012-present, b3log.org
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 /**
  * Mobile base style.
  *
  * @author <a href="http://vanessa.b3log.org">Liyuan Li</a>
  * @author <a href="http://88250.b3log.org">Liang Ding</a>
- * @version 1.8.0.1, Aug 22, 2017
+ * @version 1.12.0.2, Mar 17, 2019
  */
 @import "variables";
 @import "common";
@@ -129,6 +129,12 @@ button.small,
   text-shadow: initial;
 }
 
+button.absolute {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+}
+
 /* end button */
 
 /* start icon */
@@ -142,6 +148,7 @@ a[class*=" icon-"]:hover {
   text-decoration: none;
   color: $blue;
 }
+
 /* end icon */
 
 /* start tip */
@@ -166,7 +173,6 @@ a[class*=" icon-"]:hover {
 #loginTip,
 #addArticleTip,
 #profilesTip,
-#syncb3Tip,
 #passwordTip {
   white-space: normal;
   word-wrap: break-word;
@@ -634,6 +640,11 @@ a[class*=" icon-"]:hover {
   margin: 0;
 }
 
+.list > ul > li.cmt-perfect,
+.list > ul > li.cmt-perfect:hover {
+  background-color: #f9f6f6;
+}
+
 .has-view {
   margin-right: 40px;
 }
@@ -660,63 +671,6 @@ label.anonymous-check {
   color: #999;
 }
 
-.cm-s-default.CodeMirror {
-  border-radius: 0 0 3px 3px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.075) inset;
-  border: 1px solid #CCCCCC;
-  margin-bottom: 20px;
-  border-top-width: 0;
-  height: 330px;
-}
-
-.CodeMirror-scroll {
-  background-color: #FAFAFA;
-  font-family: "Helvetica Neue", "Luxi Sans", "DejaVu Sans", Tahoma, "Hiragino Sans GB", "Microsoft Yahei", sans-serif;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.075) inset;
-  line-height: 17px;
-}
-
-.cm-s-default.CodeMirror-fullscreen.CodeMirror {
-  margin: 0;
-}
-
-.CodeMirror,
-ul.CodeMirror-hints {
-  font-family: "Helvetica Neue", "Luxi Sans", "DejaVu Sans", Tahoma, "Hiragino Sans GB", "Microsoft Yahei", sans-serif;
-}
-
-.CodeMirror-hints .ico {
-  margin: -1px 2px 0 -1px;
-}
-
-.CodeMirror-focused .cm-matchhighlight {
-  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFklEQVQI12NgYGBgkKzc8x9CMDAwAAAmhwSbidEoSQAAAABJRU5ErkJggg==);
-  background-position: bottom;
-  background-repeat: repeat-x;
-}
-
-.CodeMirror-hint {
-  padding-right: 18px;
-  max-width: none;
-}
-
-.CodeMirror-hint:hover {
-  background: #08f;
-  color: white;
-}
-
-.CodeMirror-scrollbar-filler,
-.CodeMirror-gutter-filler {
-  background-color: transparent;
-}
-
-.CodeMirror-empty.CodeMirror-focused {
-  outline: none;
-}
-
-.CodeMirror pre.CodeMirror-placeholder {
-  color: #999;
-}
 #revision .revisions {
   margin: 5px 0 15px;
   text-align: center;
@@ -740,7 +694,6 @@ ul.CodeMirror-hints {
 
 /* start side module */
 .module {
-  border: 1px solid #eee;
   margin-bottom: 10px;
   background-color: #FFF;
   border-radius: 3px;
@@ -1098,22 +1051,23 @@ h1.article-title > a:hover {
 #thoughtProgress {
   height: 2px;
   position: relative;
-  margin-bottom: 6px;
-  left: -7px;
-}
+  margin-bottom: 10px;
+  margin-top: 20px;
 
-#thoughtProgress .bar {
-  position: absolute;
-  background-color: #e0e0e0;
-  height: 2px
-}
+  .bar {
+    position: absolute;
+    background-color: #e0e0e0;
+    height: 2px
+  }
 
-#thoughtProgress .icon-video {
-  position: absolute;
-  top: -8px;
-  left: 0;
-  cursor: pointer;
-  color: $theme-accent;
+  .icon-video {
+    position: absolute;
+    top: -8px;
+    left: 0;
+    cursor: pointer;
+    color: $theme-accent;
+    margin-left: -10px;
+  }
 }
 
 .comment-submit {
@@ -1135,7 +1089,7 @@ label.cmt-anonymous {
 }
 
 .comments > div.comments-header svg {
-  margin:3px 10px 0 0;
+  margin: 3px 10px 0 0;
 }
 
 .comments > div.comments-header a {
@@ -1240,16 +1194,6 @@ label.cmt-anonymous {
   display: inline-block;
 }
 
-#commentContent,
-#chatContent {
-  background-color: #FAFAFA;
-  margin: 51px 0 0 0;
-  overflow: hidden;
-  padding: 4px;
-  height: 88px;
-  width: 100%;
-}
-
 .article-tags .tag {
   margin: 0;
   padding: 0 3px;
@@ -1286,14 +1230,6 @@ label.cmt-anonymous {
 
 .share [class^="icon-"]:hover {
   color: $blue;
-}
-
-.cm-s-default.CodeMirror {
-  height: auto !important;
-}
-
-.CodeMirror-scroll {
-  min-height: 88px;
 }
 
 #replyUseName {
@@ -1388,13 +1324,13 @@ label.cmt-anonymous {
 .domains a {
   height: 17px;
   text-align: center;
-  padding: 10px 5px;
+  padding: 10px 2px;
   color: #999;
   text-decoration: none;
-  font-size: 12px;
   line-height: 16px;
   display: block;
   flex: 1;
+  font-size: 12px;
 }
 
 .domains a.selected {
@@ -1589,7 +1525,7 @@ label.cmt-anonymous {
 /* end article list */
 /* start guide */
 .guide {
-  .intro.content-reset {
+  .intro.vditor-reset {
     padding: 10px;
     line-height: 24px;
   }
@@ -1919,9 +1855,11 @@ code .dec {
 
 /* end activity */
 
-/* start chat room */
+/* start chatroom */
 .chat-room .online-cnt {
-  margin-top: 11px;
+  line-height: 33px;
+  margin-right: 10px;
+  color: $gray;
 }
 
 .chat-room .list {
@@ -1929,7 +1867,7 @@ code .dec {
   overflow: auto;
 }
 
-/* end chat room */
+/* end chatroom */
 /* start index */
 .index .index-wrap {
   background-color: #fafafa;
@@ -2070,13 +2008,12 @@ code .dec {
 
 #articleContent {
   height: 332px;
-  margin: 30px 0 20px 0;
-  padding: 4px;
+  margin: 10px 0;
 }
 
 #articleRewardContent {
   margin-top: 10px;
-  padding: 5px;
+  padding: 0;
 }
 
 #tip {
@@ -2232,11 +2169,29 @@ code .dec {
   padding-bottom: 10px;
 }
 
+.home-account {
+  &__captch {
+    position: relative;
+    img {
+      position: absolute;
+      height: 31px;
+      top: 39px;
+      right: 1px;
+      border-radius: 0 3px 3px 0;
+    }
+  }
+}
+
 /* end home */
 
 /* start notifications */
-.notification-tab a:hover {
-  text-decoration: none;
+.notification-tab {
+  a:hover {
+    text-decoration: none;
+  }
+  a {
+    display: inline-block !important;
+  }
 }
 
 .notification .read {
@@ -2269,6 +2224,7 @@ code .dec {
   left: 45px;
   top: 45px;
 }
+
 /* end follow */
 
 /* start admin */
@@ -2344,13 +2300,6 @@ code .dec {
 /* start settings */
 #avatarUpload {
   overflow: hidden;
-}
-
-.settings-secret label {
-  display: block;
-  width: 100%;
-  margin: 5px 0;
-  float: none;
 }
 
 .settings-avatar .btn {
@@ -2445,3 +2394,18 @@ code .dec {
 }
 
 /* end other */
+
+.breezemoon__btn {
+  position: absolute;
+  top: 9px;
+  right: 10px;
+  border-radius: 0 3px 3px 0 !important;
+}
+
+@media only screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2),
+only screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3),
+only screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) {
+  .footer {
+    padding-bottom: 22px;
+  }
+}

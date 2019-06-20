@@ -1,8 +1,27 @@
+<#--
+
+    Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+    Copyright (C) 2012-present, b3log.org
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
 <#include "macro-head.ftl">
 <!DOCTYPE html>
 <html>
     <head>
-        <@head title="${symphonyLabel}">
+        <@head title="${domainLabel} - ${symphonyLabel}">
         <meta name="description" content="${symDescriptionLabel}"/>
         </@head>
         <link rel="stylesheet" href="${staticServePath}/css/index.css?${staticResourceVersion}" />
@@ -13,7 +32,7 @@
         <div class="main">
             <div class="wrapper">
                 <div class="content fn-clear">
-                    <#list domains as domain>
+                    <#list allDomains as domain>
                     <div class="module">
                         <div class="module-header">
                             <h2>${domain.domainTitle}</h2>
@@ -42,7 +61,7 @@
                         <div class="module-header">
                             <h2>
                                 ${sponsorLabel} 
-                                <a href="https://hacpai.com/article/1460083956075" class="fn-right ft-13 ft-gray" target="_blank">${wantPutOnLabel}</a>
+                                <a href="${servePath}/about" class="fn-right ft-13 ft-gray" target="_blank">${wantPutOnLabel}</a>
                             </h2>
                         </div>
                         <div class="module-panel ad fn-clear">

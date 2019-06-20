@@ -1,8 +1,8 @@
 {
   "name": "Symphony",
-  "version": "1.7.0",
-  "description": "A modern community (forum/SNS/blog) platform written in Java. 一个用 Java 实现的现代化社区（论坛/社交网络/博客）平台。 https://hacpai.com",
-  "homepage": "https://github.com/b3log/symphony",
+  "version": "3.5.0",
+  "description": "A modern community (forum/BBS/SNS/blog) platform written in Java. 一款用 Java 实现的现代化社区（论坛/BBS/社交网络/博客）平台。",
+  "homepage": "https://sym.b3log.org",
   "repository": {
     "type": "git",
     "url": "git://github.com/b3log/symphony.git"
@@ -10,27 +10,34 @@
   "bugs": {
     "url": "https://github.com/b3log/symphony/issues"
   },
-  "license": "GPLv3",
+  "license": "AGPLv3",
   "private": true,
-  "author": "Daniel <dl882509@gmail.com> (http://88250.b3log.org) & Vanessa <lly219@gmail.com> (http://vanessa.b3log.org)",
+  "author": "Daniel <d@b3log.org> (http://88250.b3log.org) & Vanessa <v@b3log.org> (http://vanessa.b3log.org)",
+  "scripts": {
+    "dev": "gulp watch",
+    "build": "gulp"
+  },
   "maintainers": [
     {
       "name": "Daniel",
-      "email": "dl88250@gmail.com"
+      "email": "d@b3log.org"
     },
     {
       "name": "Vanessa",
-      "email": "lly219@gmail.com"
+      "email": "v@b3log.org"
     }
   ],
   "devDependencies": {
-    "gulp": "^3.9.1",
-    "gulp-clean": "^0.3.2",
-    "gulp-clean-css": "^3.0.4",
+    "del": "^3.0.0",
+    "gulp": "^4.0.1",
+    "gulp-clean-css": "^4.0.0",
     "gulp-concat": "^2.6.1",
-    "gulp-rename": "^1.2.2",
-    "gulp-sass": "^3.1.0",
-    "gulp-uglify": "^2.0.0",
-    "marked": "^0.3.6"
+    "gulp-rename": "^1.4.0",
+    "gulp-sass": "^4.0.2",
+    "gulp-uglify": "^3.0.1",
+    "gulp-util": "^3.0.8"
+  },
+  "dependencies": {
+    "vditor": "^1.5.4"
   }
 }

@@ -1,54 +1,50 @@
 /*
- * Symphony - A modern community (forum/SNS/blog) platform written in Java.
- * Copyright (C) 2012-2017,  b3log.org & hacpai.com
+ * Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+ * Copyright (C) 2012-present, b3log.org
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package org.b3log.symphony.event;
 
-import org.apache.commons.lang.StringUtils;
-import org.b3log.latke.Latkes;
+import org.b3log.latke.Keys;
 import org.b3log.latke.event.AbstractEventListener;
 import org.b3log.latke.event.Event;
-import org.b3log.latke.event.EventException;
-import org.b3log.latke.ioc.inject.Inject;
-import org.b3log.latke.ioc.inject.Named;
-import org.b3log.latke.ioc.inject.Singleton;
+import org.b3log.latke.ioc.Inject;
+import org.b3log.latke.ioc.Singleton;
 import org.b3log.latke.logging.Level;
 import org.b3log.latke.logging.Logger;
 import org.b3log.latke.model.User;
-import org.b3log.latke.service.LangPropsService;
 import org.b3log.symphony.model.Article;
 import org.b3log.symphony.model.Comment;
-import org.b3log.symphony.model.Common;
-import org.b3log.symphony.service.ShortLinkQueryService;
-import org.b3log.symphony.service.TimelineMgmtService;
+import org.b3log.symphony.model.Notification;
+import org.b3log.symphony.model.Permission;
+import org.b3log.symphony.repository.NotificationRepository;
+import org.b3log.symphony.service.NotificationMgmtService;
+import org.b3log.symphony.service.RoleQueryService;
 import org.b3log.symphony.service.UserQueryService;
-import org.b3log.symphony.util.Emotions;
-import org.b3log.symphony.util.Markdowns;
 import org.json.JSONObject;
-import org.jsoup.Jsoup;
-import org.jsoup.safety.Whitelist;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Sends comment update related notifications.
  *
  * @author <a href="http://88250.b3log.org">Liang Ding</a>
- * @version 1.0.0.0, May 6, 2017
+ * @version 1.0.0.2, Nov 17, 2018
  * @since 2.1.0
  */
-@Named
 @Singleton
 public class CommentUpdateNotifier extends AbstractEventListener<JSONObject> {
 
@@ -58,16 +54,16 @@ public class CommentUpdateNotifier extends AbstractEventListener<JSONObject> {
     private static final Logger LOGGER = Logger.getLogger(CommentUpdateNotifier.class);
 
     /**
-     * Language service.
+     * Notification repository.
      */
     @Inject
-    private LangPropsService langPropsService;
+    private NotificationRepository notificationRepository;
 
     /**
-     * Timeline management service.
+     * Notification management service.
      */
     @Inject
-    private TimelineMgmtService timelineMgmtService;
+    private NotificationMgmtService notificationMgmtService;
 
     /**
      * User query service.
@@ -76,60 +72,56 @@ public class CommentUpdateNotifier extends AbstractEventListener<JSONObject> {
     private UserQueryService userQueryService;
 
     /**
-     * Short link query service.
+     * Role query service.
      */
     @Inject
-    private ShortLinkQueryService shortLinkQueryService;
+    private RoleQueryService roleQueryService;
 
     @Override
-    public void action(final Event<JSONObject> event) throws EventException {
+    public void action(final Event<JSONObject> event) {
         final JSONObject data = event.getData();
         LOGGER.log(Level.TRACE, "Processing an event [type={0}, data={1}]", event.getType(), data);
 
         try {
             final JSONObject originalArticle = data.getJSONObject(Article.ARTICLE);
             final JSONObject originalComment = data.getJSONObject(Comment.COMMENT);
-
-            final boolean isDiscussion = originalArticle.optInt(Article.ARTICLE_TYPE) == Article.ARTICLE_TYPE_C_DISCUSSION;
-            if (isDiscussion) {
-                return;
-            }
-
-            if (Comment.COMMENT_ANONYMOUS_C_PUBLIC != originalComment.optInt(Comment.COMMENT_ANONYMOUS)) {
-                return;
-            }
-
+            final String commentId = originalComment.optString(Keys.OBJECT_ID);
             final String commenterId = originalComment.optString(Comment.COMMENT_AUTHOR_ID);
+            final String commentContent = originalComment.optString(Comment.COMMENT_CONTENT);
             final JSONObject commenter = userQueryService.getUser(commenterId);
             final String commenterName = commenter.optString(User.USER_NAME);
-            final String commentContent = originalComment.optString(Comment.COMMENT_CONTENT);
+            final Set<String> atUserNames = userQueryService.getUserNames(commentContent);
+            atUserNames.remove(commenterName);
+            final boolean isDiscussion = originalArticle.optInt(Article.ARTICLE_TYPE) == Article.ARTICLE_TYPE_C_DISCUSSION;
+            final String articleAuthorId = originalArticle.optString(Article.ARTICLE_AUTHOR_ID);
+            final String articleContent = originalArticle.optString(Article.ARTICLE_CONTENT);
+            final Set<String> articleContentAtUserNames = userQueryService.getUserNames(articleContent);
+            final Set<String> requisiteAtUserPermissions = new HashSet<>();
+            requisiteAtUserPermissions.add(Permission.PERMISSION_ID_C_COMMON_AT_USER);
+            final boolean hasAtUserPerm = roleQueryService.userHasPermissions(commenterId, requisiteAtUserPermissions);
+            final Set<String> atIds = new HashSet<>();
+            if (hasAtUserPerm) {
+                // 'At' Notification
+                for (final String userName : atUserNames) {
+                    if (isDiscussion && !articleContentAtUserNames.contains(userName)) {
+                        continue;
+                    }
 
-            String cc = shortLinkQueryService.linkArticle(commentContent);
-            cc = shortLinkQueryService.linkTag(cc);
-            cc = Emotions.convert(cc);
-            cc = Markdowns.toHTML(cc);
-            cc = Markdowns.clean(cc, "");
+                    final JSONObject atUser = userQueryService.getUserByName(userName);
+                    if (atUser.optString(Keys.OBJECT_ID).equals(articleAuthorId)) {
+                        continue; // Has notified in step 2
+                    }
 
-            // Timeline
-            String articleTitle = Jsoup.parse(originalArticle.optString(Article.ARTICLE_TITLE)).text();
-            articleTitle = Emotions.convert(articleTitle);
-            final String articlePermalink = Latkes.getServePath() + originalArticle.optString(Article.ARTICLE_PERMALINK);
+                    final String atUserId = atUser.optString(Keys.OBJECT_ID);
+                    if (!notificationRepository.hasSentByDataIdAndType(atUserId, commentId, Notification.DATA_TYPE_C_AT)) {
+                        final JSONObject requestJSONObject = new JSONObject();
+                        requestJSONObject.put(Notification.NOTIFICATION_USER_ID, atUserId);
+                        requestJSONObject.put(Notification.NOTIFICATION_DATA_ID, commentId);
+                        notificationMgmtService.addAtNotification(requestJSONObject);
+                    }
 
-            final JSONObject timeline = new JSONObject();
-            timeline.put(Common.USER_ID, commenterId);
-            timeline.put(Common.TYPE, Comment.COMMENT);
-            String content = langPropsService.get("timelineCommentUpdateLabel");
-            content = content.replace("{user}", "<a target='_blank' rel='nofollow' href='"
-                    + Latkes.getServePath() + "/member/" + commenterName + "'>" + commenterName + "</a>");
-            content = content.replace("{article}", "<a target='_blank' rel='nofollow' href='"
-                    + articlePermalink + "'>" + articleTitle + "</a>").
-                    replace("{comment}", cc.replaceAll("<p>", "").replaceAll("</p>", ""));
-
-            content = Jsoup.clean(content, Whitelist.none().addAttributes("a", "href", "rel", "target"));
-            timeline.put(Common.CONTENT, content);
-
-            if (StringUtils.isNotBlank(content)) {
-                timelineMgmtService.addTimeline(timeline);
+                    atIds.add(atUserId);
+                }
             }
         } catch (final Exception e) {
             LOGGER.log(Level.ERROR, "Sends the comment update notification failed", e);

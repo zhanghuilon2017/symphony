@@ -1,8 +1,12 @@
 User-agent: *
-Disallow: /settings
-Disallow: /timeline
+Disallow: /settings/
+Disallow: /notifications/
+Disallow: /watch/
 Disallow: /admin/
-Disallow: /member/
-Disallow: /city
+Disallow: /city/
+Disallow: /activity/
 Disallow: /search
 Disallow: /cr
+Disallow: /post
+Disallow: /update
+Disallow: /guide

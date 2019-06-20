@@ -1,19 +1,19 @@
 /*
- * Symphony - A modern community (forum/SNS/blog) platform written in Java.
- * Copyright (C) 2012-2017,  b3log.org & hacpai.com
+ * Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+ * Copyright (C) 2012-present, b3log.org
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package org.b3log.symphony.model;
 
@@ -21,7 +21,7 @@ package org.b3log.symphony.model;
  * This class defines all comment model relevant keys.
  *
  * @author <a href="http://88250.b3log.org">Liang Ding</a>
- * @version 1.11.0.10, May 6, 2017
+ * @version 1.15.0.1, Jan 30, 2019
  * @since 0.2.0
  */
 public final class Comment {
@@ -47,6 +47,11 @@ public final class Comment {
     public static final String COMMENT_CREATE_TIME = "commentCreateTime";
 
     /**
+     * Key of comment create time str.
+     */
+    public static final String COMMENT_CREATE_TIME_STR = "commentCreateTimeStr";
+
+    /**
      * Key of comment author id.
      */
     public static final String COMMENT_AUTHOR_ID = "commentAuthorId";
@@ -55,11 +60,6 @@ public final class Comment {
      * Key of comment on article id.
      */
     public static final String COMMENT_ON_ARTICLE_ID = "commentOnArticleId";
-
-    /**
-     * Key of client comment id.
-     */
-    public static final String COMMENT_CLIENT_COMMENT_ID = "clientCommentId";
 
     /**
      * Key of comment sharp URL.
@@ -92,6 +92,11 @@ public final class Comment {
     public static final String COMMENT_ANONYMOUS = "commentAnonymous";
 
     /**
+     * Key of comment thank count.
+     */
+    public static final String COMMENT_THANK_CNT = "commentThankCnt";
+
+    /**
      * Key of comment good count.
      */
     public static final String COMMENT_GOOD_CNT = "commentGoodCnt";
@@ -115,6 +120,16 @@ public final class Comment {
      * Key of comment audio URL.
      */
     public static final String COMMENT_AUDIO_URL = "commentAudioURL";
+
+    /**
+     * Key of comment offered. https://github.com/b3log/symphony/issues/486
+     */
+    public static final String COMMENT_QNA_OFFERED = "commentQnAOffered";
+
+    /**
+     * Key of comment visible.
+     */
+    public static final String COMMENT_VISIBLE = "commentVisible";
 
     //// Transient ////
     /**
@@ -243,6 +258,34 @@ public final class Comment {
      * Comment anonymous - anonymous.
      */
     public static final int COMMENT_ANONYMOUS_C_ANONYMOUS = 1;
+
+    // QnA offered constants
+    /**
+     * Comment offered - not yet.
+     */
+    public static final int COMMENT_QNA_OFFERED_C_NOT = 0;
+
+    /**
+     * Comment offered - yes.
+     */
+    public static final int COMMENT_QNA_OFFERED_C_YES = 1;
+
+    // Visible constants
+    /**
+     * Comment visible - all.
+     */
+    public static final int COMMENT_VISIBLE_C_ALL = 0;
+
+    /**
+     * Comment visible - only author.
+     */
+    public static final int COMMENT_VISIBLE_C_AUTHOR = 1;
+
+    //// Validation constants
+    /**
+     * Max comment content length.
+     */
+    public static final int MAX_COMMENT_CONTENT_LENGTH = 4096;
 
     /**
      * Private constructor.

@@ -1,26 +1,26 @@
 /*
- * Symphony - A modern community (forum/SNS/blog) platform written in Java.
- * Copyright (C) 2012-2017,  b3log.org & hacpai.com
+ * Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+ * Copyright (C) 2012-present, b3log.org
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package org.b3log.symphony.service;
 
 import org.apache.commons.lang.StringUtils;
 import org.b3log.latke.Keys;
 import org.b3log.latke.Latkes;
-import org.b3log.latke.ioc.inject.Inject;
+import org.b3log.latke.ioc.Inject;
 import org.b3log.latke.logging.Level;
 import org.b3log.latke.logging.Logger;
 import org.b3log.latke.model.Pagination;
@@ -30,19 +30,18 @@ import org.b3log.latke.service.ServiceException;
 import org.b3log.latke.service.annotation.Service;
 import org.b3log.latke.util.CollectionUtils;
 import org.b3log.latke.util.Paginator;
+import org.b3log.latke.util.Times;
+import org.b3log.latke.util.URLs;
 import org.b3log.symphony.model.*;
 import org.b3log.symphony.repository.FollowRepository;
 import org.b3log.symphony.repository.PointtransferRepository;
 import org.b3log.symphony.repository.UserRepository;
 import org.b3log.symphony.util.Sessions;
-import org.b3log.symphony.util.Times;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.*;
 
 /**
@@ -50,7 +49,7 @@ import java.util.*;
  *
  * @author <a href="http://88250.b3log.org">Liang Ding</a>
  * @author <a href="http://zephyr.b3log.org">Zephyr</a>
- * @version 1.8.6.13, Apr 23, 2017
+ * @version 1.8.7.2, Nov 6, 2018
  * @since 0.2.0
  */
 @Service
@@ -64,7 +63,7 @@ public class UserQueryService {
     /**
      * All usernames.
      */
-    public static final List<JSONObject> USER_NAMES = Collections.synchronizedList(new ArrayList<JSONObject>());
+    public static final List<JSONObject> USER_NAMES = Collections.synchronizedList(new ArrayList<>());
 
     /**
      * User repository.
@@ -108,8 +107,8 @@ public class UserQueryService {
         final int RANGE_SIZE = 64;
 
         try {
-            final Query userQuery = new Query();
-            userQuery.setCurrentPageNum(1).setPageCount(1).setPageSize(RANGE_SIZE).
+            final Query userQuery = new Query().
+                    setPage(1, RANGE_SIZE).setPageCount(1).
                     setFilter(new PropertyFilter(UserExt.USER_STATUS, FilterOperator.EQUAL, UserExt.USER_STATUS_C_VALID)).
                     addSort(UserExt.USER_ARTICLE_COUNT, SortDirection.DESCENDING).
                     addSort(UserExt.USER_COMMENT_COUNT, SortDirection.DESCENDING);
@@ -128,7 +127,7 @@ public class UserQueryService {
             }
 
             for (final JSONObject selectedUser : ret) {
-                avatarQueryService.fillUserAvatarURL(UserExt.USER_AVATAR_VIEW_MODE_C_STATIC, selectedUser);
+                avatarQueryService.fillUserAvatarURL(selectedUser);
             }
         } catch (final Exception e) {
             LOGGER.log(Level.ERROR, "Get nice users failed", e);
@@ -192,14 +191,14 @@ public class UserQueryService {
                                              final int windowSize) throws ServiceException {
         final JSONObject ret = new JSONObject();
 
-        final Query query = new Query().addSort(Keys.OBJECT_ID, SortDirection.DESCENDING)
-                .setCurrentPageNum(currentPageNum).setPageSize(pageSize)
-                .setFilter(CompositeFilterOperator.and(
+        final Query query = new Query().addSort(Keys.OBJECT_ID, SortDirection.DESCENDING).
+                setPage(currentPageNum, pageSize).
+                setFilter(CompositeFilterOperator.and(
                         new PropertyFilter(UserExt.USER_STATUS, FilterOperator.EQUAL, UserExt.USER_STATUS_C_VALID),
                         new PropertyFilter(UserExt.USER_LATEST_LOGIN_TIME, FilterOperator.GREATER_THAN_OR_EQUAL, time)
                 ));
 
-        JSONObject result = null;
+        JSONObject result;
         try {
             result = userRepository.get(query);
         } catch (final RepositoryException e) {
@@ -280,13 +279,11 @@ public class UserQueryService {
     public void loadUserNames() {
         USER_NAMES.clear();
 
-        final Query query = new Query().setPageCount(1);
-        query.setFilter(new PropertyFilter(User.USER_NAME, FilterOperator.NOT_EQUAL, UserExt.NULL_USER_NAME));
-        query.addProjection(User.USER_NAME, String.class);
-        query.addProjection(UserExt.USER_AVATAR_URL, String.class);
-
+        final Query query = new Query().setPageCount(1).
+                setFilter(new PropertyFilter(UserExt.USER_STATUS, FilterOperator.EQUAL, UserExt.USER_STATUS_C_VALID)).
+                select(User.USER_NAME, UserExt.USER_AVATAR_URL);
         try {
-            final JSONObject result = userRepository.get(query); // XXX: Performance Issue
+            final JSONObject result = userRepository.get(query);
             final JSONArray array = result.optJSONArray(Keys.RESULTS);
             for (int i = 0; i < array.length(); i++) {
                 final JSONObject user = array.optJSONObject(i);
@@ -294,11 +291,8 @@ public class UserQueryService {
                 final JSONObject u = new JSONObject();
                 u.put(User.USER_NAME, user.optString(User.USER_NAME));
                 u.put(UserExt.USER_T_NAME_LOWER_CASE, user.optString(User.USER_NAME).toLowerCase());
-
-                final String avatar = avatarQueryService.getAvatarURLByUser(UserExt.USER_AVATAR_VIEW_MODE_C_STATIC,
-                        user, "20");
+                final String avatar = avatarQueryService.getAvatarURLByUser(user, "20");
                 u.put(UserExt.USER_AVATAR_URL, avatar);
-
                 USER_NAMES.add(u);
             }
 
@@ -395,14 +389,14 @@ public class UserQueryService {
      * Gets the administrators.
      *
      * @return administrators, returns an empty list if not found or error
-     * @throws ServiceException service exception
      */
-    public List<JSONObject> getAdmins() throws ServiceException {
+    public List<JSONObject> getAdmins() {
         try {
             return userRepository.getAdmins();
         } catch (final RepositoryException e) {
-            LOGGER.log(Level.ERROR, "Gets admins failed", e);
-            throw new ServiceException(e);
+            LOGGER.log(Level.ERROR, "Gets admins failed: " + e.getMessage());
+
+            return Collections.emptyList();
         }
     }
 
@@ -417,13 +411,12 @@ public class UserQueryService {
     }
 
     /**
-     * Gets the default commenter.
+     * Gets the community bot.
      *
      * @return default commenter
-     * @throws ServiceException service exception
      */
-    public JSONObject getDefaultCommenter() throws ServiceException {
-        final JSONObject ret = getUserByName(UserExt.DEFAULT_CMTER_NAME);
+    public JSONObject getComBot() {
+        final JSONObject ret = getUserByName(UserExt.COM_BOT_NAME);
         ret.remove(UserExt.USER_T_POINT_HEX);
         ret.remove(UserExt.USER_T_POINT_CC);
 
@@ -460,17 +453,13 @@ public class UserQueryService {
     public Set<String> getUserNames(final String text) {
         final Set<String> ret = new HashSet<>();
         int idx = text.indexOf('@');
-
         if (-1 == idx) {
             return ret;
         }
 
         String copy = text.trim();
         copy = copy.replaceAll("\\n", " ");
-        //(?=\\pP)匹配标点符号-http://www.cnblogs.com/qixuejia/p/4211428.html
-        copy = copy.replaceAll("(?=\\pP)[^@]", " ");
         String[] uNames = StringUtils.substringsBetween(copy, "@", " ");
-
         String tail = StringUtils.substringAfterLast(copy, "@");
         if (tail.contains(" ")) {
             tail = null;
@@ -487,7 +476,6 @@ public class UserQueryService {
         }
 
         String[] uNames2 = StringUtils.substringsBetween(copy, "@", "<");
-
         final Set<String> maybeUserNameSet;
         if (null == uNames) {
             uNames = uNames2;
@@ -569,39 +557,35 @@ public class UserQueryService {
      *      }, ....]
      * }
      * </pre>
-     * @throws ServiceException service exception
      * @see Pagination
      */
-    public JSONObject getUsers(final JSONObject requestJSONObject) throws ServiceException {
+    public JSONObject getUsers(final JSONObject requestJSONObject) {
         final JSONObject ret = new JSONObject();
 
         final int currentPageNum = requestJSONObject.optInt(Pagination.PAGINATION_CURRENT_PAGE_NUM);
         final int pageSize = requestJSONObject.optInt(Pagination.PAGINATION_PAGE_SIZE);
         final int windowSize = requestJSONObject.optInt(Pagination.PAGINATION_WINDOW_SIZE);
-        final Query query = new Query().addSort(Keys.OBJECT_ID, SortDirection.DESCENDING).
-                setCurrentPageNum(currentPageNum).setPageSize(pageSize);
+        final Query query = new Query().addSort(Keys.OBJECT_ID, SortDirection.DESCENDING).setPage(currentPageNum, pageSize);
 
-        if (requestJSONObject.has(Common.USER_NAME_OR_EMAIL)) {
-            final String nameOrEmail = requestJSONObject.optString(Common.USER_NAME_OR_EMAIL);
-
+        if (requestJSONObject.has(Common.QUERY)) {
+            final String q = requestJSONObject.optString(Common.QUERY);
             final List<Filter> filters = new ArrayList<>();
-            filters.add(new PropertyFilter(User.USER_NAME, FilterOperator.EQUAL, nameOrEmail));
-            filters.add(new PropertyFilter(User.USER_EMAIL, FilterOperator.EQUAL, nameOrEmail));
+            filters.add(new PropertyFilter(User.USER_NAME, FilterOperator.EQUAL, q));
+            filters.add(new PropertyFilter(User.USER_EMAIL, FilterOperator.EQUAL, q));
+            filters.add(new PropertyFilter(Keys.OBJECT_ID, FilterOperator.EQUAL, q));
             query.setFilter(new CompositeFilter(CompositeFilterOperator.OR, filters));
         }
 
-        JSONObject result = null;
-
+        JSONObject result;
         try {
             result = userRepository.get(query);
         } catch (final RepositoryException e) {
             LOGGER.log(Level.ERROR, "Gets users failed", e);
 
-            throw new ServiceException(e);
+            return null;
         }
 
         final int pageCount = result.optJSONObject(Pagination.PAGINATION).optInt(Pagination.PAGINATION_PAGE_COUNT);
-
         final JSONObject pagination = new JSONObject();
         ret.put(Pagination.PAGINATION, pagination);
         final List<Integer> pageNums = Paginator.paginate(currentPageNum, pageSize, pageCount, windowSize);
@@ -615,7 +599,7 @@ public class UserQueryService {
             final JSONObject user = users.optJSONObject(i);
             user.put(UserExt.USER_T_CREATE_TIME, new Date(user.optLong(Keys.OBJECT_ID)));
 
-            avatarQueryService.fillUserAvatarURL(UserExt.USER_AVATAR_VIEW_MODE_C_ORIGINAL, user);
+            avatarQueryService.fillUserAvatarURL(user);
 
             final JSONObject role = roleQueryService.getRole(user.optString(User.USER_ROLE));
             user.put(Role.ROLE_NAME, role.optString(Role.ROLE_NAME));
@@ -650,10 +634,9 @@ public class UserQueryService {
      *      }, ....]
      * }
      * </pre>
-     * @throws ServiceException service exception
      * @see Pagination
      */
-    public JSONObject getUsersByCity(final JSONObject requestJSONObject) throws ServiceException {
+    public JSONObject getUsersByCity(final JSONObject requestJSONObject) {
         final JSONObject ret = new JSONObject();
 
         final int currentPageNum = requestJSONObject.optInt(Pagination.PAGINATION_CURRENT_PAGE_NUM);
@@ -662,20 +645,21 @@ public class UserQueryService {
         final String city = requestJSONObject.optString(UserExt.USER_CITY);
         final long latestTime = requestJSONObject.optLong(UserExt.USER_LATEST_LOGIN_TIME);
 
-        final Query query = new Query().addSort(UserExt.USER_LATEST_LOGIN_TIME, SortDirection.DESCENDING)
-                .setCurrentPageNum(currentPageNum).setPageSize(pageSize)
-                .setFilter(CompositeFilterOperator.and(
+        final Query query = new Query().addSort(UserExt.USER_LATEST_LOGIN_TIME, SortDirection.DESCENDING).
+                setPage(currentPageNum, pageSize).
+                setFilter(CompositeFilterOperator.and(
                         new PropertyFilter(UserExt.USER_CITY, FilterOperator.EQUAL, city),
+                        new PropertyFilter(UserExt.USER_GEO_STATUS, FilterOperator.EQUAL, UserExt.USER_GEO_STATUS_C_PUBLIC),
                         new PropertyFilter(UserExt.USER_STATUS, FilterOperator.EQUAL, UserExt.USER_STATUS_C_VALID),
                         new PropertyFilter(UserExt.USER_LATEST_LOGIN_TIME, FilterOperator.GREATER_THAN_OR_EQUAL, latestTime)
                 ));
-        JSONObject result = null;
+        JSONObject result;
         try {
             result = userRepository.get(query);
         } catch (final RepositoryException e) {
             LOGGER.log(Level.ERROR, "Gets users by city error", e);
 
-            throw new ServiceException(e);
+            return null;
         }
 
         final int pageCount = result.optJSONObject(Pagination.PAGINATION).optInt(Pagination.PAGINATION_PAGE_COUNT);
@@ -714,15 +698,14 @@ public class UserQueryService {
      *     ....
      * }
      * </pre>, returns {@code null} if not found
-     * @throws ServiceException service exception
      */
-    public JSONObject getUser(final String userId) throws ServiceException {
+    public JSONObject getUser(final String userId) {
         try {
             return userRepository.get(userId);
         } catch (final RepositoryException e) {
             LOGGER.log(Level.ERROR, "Gets a user failed", e);
 
-            throw new ServiceException(e);
+            return null;
         }
     }
 
@@ -734,12 +717,7 @@ public class UserQueryService {
      */
     public String getLogoutURL(final String redirectURL) {
         String to = Latkes.getServePath();
-
-        try {
-            to = URLEncoder.encode(to + redirectURL, "UTF-8");
-        } catch (final UnsupportedEncodingException e) {
-            LOGGER.log(Level.ERROR, "URL encode[string={0}]", redirectURL);
-        }
+        to = URLs.encode(to + redirectURL);
 
         return Latkes.getContextPath() + "/logout?goto=" + to;
     }
@@ -752,12 +730,7 @@ public class UserQueryService {
      */
     public String getLoginURL(final String redirectURL) {
         String to = Latkes.getServePath();
-
-        try {
-            to = URLEncoder.encode(to + redirectURL, "UTF-8");
-        } catch (final UnsupportedEncodingException e) {
-            LOGGER.log(Level.ERROR, "URL encode[string={0}]", redirectURL);
-        }
+        to = URLs.encode(to + redirectURL);
 
         return Latkes.getContextPath() + "/login?goto=" + to;
     }

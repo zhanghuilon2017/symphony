@@ -1,29 +1,26 @@
 /*
- * Symphony - A modern community (forum/SNS/blog) platform written in Java.
- * Copyright (C) 2012-2017,  b3log.org & hacpai.com
+ * Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+ * Copyright (C) 2012-present, b3log.org
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package org.b3log.symphony.model;
 
 import org.apache.commons.lang.StringUtils;
-import org.b3log.latke.ioc.LatkeBeanManager;
-import org.b3log.latke.ioc.LatkeBeanManagerImpl;
-import org.b3log.latke.ioc.Lifecycle;
+import org.b3log.latke.ioc.BeanManager;
 import org.b3log.latke.util.Strings;
 import org.b3log.symphony.cache.TagCache;
-import org.b3log.symphony.service.ShortLinkQueryService;
 import org.b3log.symphony.util.Emotions;
 import org.b3log.symphony.util.Markdowns;
 import org.b3log.symphony.util.Symphonys;
@@ -39,7 +36,7 @@ import java.util.regex.Pattern;
  * @author <a href="http://88250.b3log.org">Liang Ding</a>
  * @author Bill Ho
  * @author <a href="http://vanessa.b3log.org">Liyuan Li</a>
- * @version 1.17.0.1, Jun 22, 2017
+ * @version 1.18.0.4, May 19, 2019
  * @since 0.2.0
  */
 public final class Tag {
@@ -134,6 +131,16 @@ public final class Tag {
      */
     public static final String TAG_RANDOM_DOUBLE = "tagRandomDouble";
 
+    /**
+     * Key of tag ad.
+     */
+    public static final String TAG_AD = "tagAd";
+
+    /**
+     * Key of tag show side ad.
+     */
+    public static final String TAG_SHOW_SIDE_AD = "tagShowSideAd";
+
     //// Transient ////
     /**
      * Key of tag domains.
@@ -164,11 +171,6 @@ public final class Tag {
      * Key of tag creator thumbnail URL.
      */
     public static final String TAG_T_CREATOR_THUMBNAIL_URL = "tagCreatorThumbnailURL";
-
-    /**
-     * Key of tag creator thumbnail update time.
-     */
-    public static final String TAG_T_CREATOR_THUMBNAIL_UPDATE_TIME = "tagCreatorThumbnailUpdateTime";
 
     /**
      * Key of tag creator name.
@@ -210,16 +212,6 @@ public final class Tag {
      */
     public static final String TAG_T_TITLE_LOWER_CASE = "tagTitleLowerCase";
 
-    /**
-     * Key of tag links.
-     */
-    public static final String TAG_T_LINKS = "tagLinks";
-
-    /**
-     * Key of tag links count.
-     */
-    public static final String TAG_T_LINKS_CNT = "tagLinksCnt";
-
     //// Tag type constants
     /**
      * Tag type - creator.
@@ -257,8 +249,7 @@ public final class Tag {
     /**
      * Max tag title length.
      */
-    public static final int MAX_TAG_TITLE_LENGTH = (null == Symphonys.getInt("tag.maxTagTitleLength"))
-            ? 9 : Symphonys.getInt("tag.maxTagTitleLength");
+    public static final int MAX_TAG_TITLE_LENGTH = 12;
 
     /**
      * Max tag count.
@@ -442,7 +433,7 @@ public final class Tag {
      * @return normalized title
      */
     private static String normalize(final String title) {
-        final TagCache cache = LatkeBeanManagerImpl.getInstance().getReference(TagCache.class);
+        final TagCache cache = BeanManager.getInstance().getReference(TagCache.class);
         final List<JSONObject> iconTags = cache.getIconTags(Integer.MAX_VALUE);
         Collections.sort(iconTags, (t1, t2) -> {
             final String u1Title = t1.optString(Tag.TAG_T_TITLE_LOWER_CASE);
@@ -470,24 +461,20 @@ public final class Tag {
             return u2Title.length() - u1Title.length();
         });
 
-        for (final JSONObject tag : allTags) {
-            final String tagURI = tag.optString(Tag.TAG_URI);
-            final String tagTitle = tag.optString(Tag.TAG_TITLE);
-            if (tagURI.equals(tagTitle)) {
-                continue;
-            }
-
-            if (StringUtils.equals(title, tagURI)) {
-                return tag.optString(Tag.TAG_TITLE);
-            }
-        }
-
         for (final Map.Entry<String, Set<String>> entry : NORMALIZE_MAPPINGS.entrySet()) {
             final Set<String> oddTitles = entry.getValue();
             for (final String oddTitle : oddTitles) {
                 if (StringUtils.equalsIgnoreCase(title, oddTitle)) {
                     return entry.getKey();
                 }
+            }
+        }
+
+        for (final JSONObject tag : allTags) {
+            final String tagTitle = tag.optString(Tag.TAG_TITLE);
+            final String tagURI = tag.optString(Tag.TAG_URI);
+            if (StringUtils.equalsIgnoreCase(title, tagURI) || StringUtils.equalsIgnoreCase(title, tagTitle)) {
+                return tag.optString(Tag.TAG_TITLE);
             }
         }
 
@@ -500,13 +487,13 @@ public final class Tag {
      * @param tag the specified tag
      */
     public static void fillDescription(final JSONObject tag) {
+        if (null == tag) {
+            return;
+        }
+
         String description = tag.optString(Tag.TAG_DESCRIPTION);
         String descriptionText = tag.optString(Tag.TAG_TITLE);
         if (StringUtils.isNotBlank(description)) {
-            final LatkeBeanManager beanManager = Lifecycle.getBeanManager();
-            final ShortLinkQueryService shortLinkQueryService = beanManager.getReference(ShortLinkQueryService.class);
-
-            description = shortLinkQueryService.linkTag(description);
             description = Emotions.convert(description);
             description = Markdowns.toHTML(description);
 

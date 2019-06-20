@@ -1,25 +1,26 @@
 /*
- * Symphony - A modern community (forum/SNS/blog) platform written in Java.
- * Copyright (C) 2012-2017,  b3log.org & hacpai.com
+ * Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+ * Copyright (C) 2012-present, b3log.org
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package org.b3log.symphony.service;
 
-import org.b3log.latke.ioc.inject.Inject;
+import org.b3log.latke.ioc.Inject;
 import org.b3log.latke.logging.Level;
 import org.b3log.latke.logging.Logger;
+import org.b3log.latke.model.User;
 import org.b3log.latke.repository.FilterOperator;
 import org.b3log.latke.repository.PropertyFilter;
 import org.b3log.latke.repository.Query;
@@ -30,6 +31,7 @@ import org.b3log.symphony.model.Permission;
 import org.b3log.symphony.model.Role;
 import org.b3log.symphony.repository.RolePermissionRepository;
 import org.b3log.symphony.repository.RoleRepository;
+import org.b3log.symphony.repository.UserRepository;
 import org.json.JSONObject;
 
 import java.util.Set;
@@ -38,7 +40,7 @@ import java.util.Set;
  * Role management service.
  *
  * @author <a href="http://88250.b3log.org">Liang Ding</a>
- * @version 1.0.0.0, Dec 8, 2016
+ * @version 1.1.0.0, Jun 23, 2018
  * @since 1.8.0
  */
 @Service
@@ -60,6 +62,33 @@ public class RoleMgmtService {
      */
     @Inject
     private RolePermissionRepository rolePermissionRepository;
+
+    /**
+     * User repository.
+     */
+    @Inject
+    private UserRepository userRepository;
+
+    /**
+     * Removes the specified role.
+     *
+     * @param roleId the specified role id
+     */
+    @Transactional
+    public void removeRole(final String roleId) {
+        try {
+            final Query userCountQuery = new Query().setFilter(new PropertyFilter(User.USER_ROLE, FilterOperator.EQUAL, roleId));
+            final int count = (int) userRepository.count(userCountQuery);
+            if (0 < count) {
+                return;
+            }
+
+            rolePermissionRepository.removeByRoleId(roleId);
+            roleRepository.remove(roleId);
+        } catch (final Exception e) {
+            LOGGER.log(Level.ERROR, "Removes a role [id=" + roleId + "] failed", e);
+        }
+    }
 
     /**
      * Adds the specified role.

@@ -1,29 +1,27 @@
 /*
- * Symphony - A modern community (forum/SNS/blog) platform written in Java.
- * Copyright (C) 2012-2017,  b3log.org & hacpai.com
+ * Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+ * Copyright (C) 2012-present, b3log.org
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package org.b3log.symphony.processor.channel;
 
 import org.b3log.latke.Keys;
-import org.b3log.latke.ioc.LatkeBeanManager;
-import org.b3log.latke.ioc.Lifecycle;
-import org.b3log.latke.ioc.inject.Inject;
+import org.b3log.latke.ioc.BeanManager;
+import org.b3log.latke.ioc.Inject;
 import org.b3log.latke.logging.Logger;
 import org.b3log.latke.model.User;
-import org.b3log.latke.service.ServiceException;
 import org.b3log.symphony.model.Pointtransfer;
 import org.b3log.symphony.service.ActivityMgmtService;
 import org.b3log.symphony.service.UserQueryService;
@@ -53,6 +51,11 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class GobangChannel {
 
     /**
+     * Logger.
+     */
+    private static final Logger LOGGER = Logger.getLogger(GobangChannel.class);
+
+    /**
      * Session set.
      */
     public static final Map<String, Session> SESSIONS = new ConcurrentHashMap<>();
@@ -75,11 +78,6 @@ public class GobangChannel {
      * 等待的棋局队列.
      */
     public static final Queue<ChessGame> chessRandomWait = new ConcurrentLinkedQueue<>();
-
-    /**
-     * Logger.
-     */
-    private static final Logger LOGGER = Logger.getLogger(GobangChannel.class);
 
     /**
      * Activity management service.
@@ -149,7 +147,7 @@ public class GobangChannel {
                 sendText.put("message", "【系统】：请等待另一名玩家加入游戏");
                 session.getAsyncRemote().sendText(sendText.toString());
             } else {
-                final LatkeBeanManager beanManager = Lifecycle.getBeanManager();
+                final BeanManager beanManager = BeanManager.getInstance();
                 chessGame.setPlayer2(userId);
                 chessGame.setName2(userName);
                 chessGame.setPlayState2(true);
@@ -200,17 +198,13 @@ public class GobangChannel {
         final String player = jsonObject.optString("player");
         final String anti = getAntiPlayer(player);
         JSONObject sendText = new JSONObject();
-        final LatkeBeanManager beanManager = Lifecycle.getBeanManager();
+        final BeanManager beanManager = BeanManager.getInstance();
         switch (jsonObject.optInt("type")) {
             case 1: //聊天
                 LOGGER.debug(jsonObject.optString("message"));
                 final UserQueryService userQueryService = beanManager.getReference(UserQueryService.class);
                 sendText.put("type", 1);
-                try {
-                    sendText.put("player", userQueryService.getUser(player).optString(User.USER_NAME));
-                } catch (ServiceException e) {
-                    LOGGER.error("service not avaliable");
-                }
+                sendText.put("player", userQueryService.getUser(player).optString(User.USER_NAME));
                 sendText.put("message", jsonObject.optString("message"));
                 SESSIONS.get(anti).getAsyncRemote().sendText(sendText.toString());
                 break;
@@ -331,7 +325,7 @@ public class GobangChannel {
                             chessPlaying.remove(player);
                             antiPlayer.remove(player);
                             //由于玩家2先退出，补偿玩家1的积分
-                            final LatkeBeanManager beanManager = Lifecycle.getBeanManager();
+                            final BeanManager beanManager = BeanManager.getInstance();
                             final ActivityMgmtService activityMgmtService = beanManager.getReference(ActivityMgmtService.class);
                             activityMgmtService.collectGobang(chessGame.getPlayer1(), Pointtransfer.TRANSFER_SUM_C_ACTIVITY_GOBANG_START);
                         } else {
@@ -348,7 +342,7 @@ public class GobangChannel {
                             chessPlaying.remove(player1);
                             antiPlayer.remove(player1);
                             //由于玩家1先退出，补偿玩家2的积分
-                            final LatkeBeanManager beanManager = Lifecycle.getBeanManager();
+                            final BeanManager beanManager = BeanManager.getInstance();
                             final ActivityMgmtService activityMgmtService = beanManager.getReference(ActivityMgmtService.class);
                             activityMgmtService.collectGobang(chessGame.getPlayer2(), Pointtransfer.TRANSFER_SUM_C_ACTIVITY_GOBANG_START);
                         } else {

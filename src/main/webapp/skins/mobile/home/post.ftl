@@ -1,3 +1,22 @@
+<#--
+
+    Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+    Copyright (C) 2012-present, b3log.org
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
 <#include "../macro-head.ftl">
 <!DOCTYPE html>
 <html>
@@ -5,26 +24,25 @@
         <@head title="${addArticleLabel} - ${symphonyLabel}">
         <meta name="robots" content="none" />
         </@head>
-        <link rel="stylesheet" href="${staticServePath}/js/lib/editor/codemirror.min.css">
-        <link rel="stylesheet" href="${staticServePath}/js/lib/highlight.js-9.6.0/styles/github.css">
     </head>
     <body>
         <#include "../header.ftl">
         <div class="main">
             <div class="wrapper post">
                 <div class="fn-hr10"></div>
-                <div class="form fn-flex-1 fn-clear">
-                    <input type="text" id="articleTitle" tabindex="1"
-                           value="<#if article??>${article.articleTitle}</#if>" placeholder="${titleLabel}" />
-                    <div class="fn-hr10"></div>
-                    <div class="fn-hr10"></div>
+                <div class="fn-flex-1 fn-clear">
+                    <div class="form">
+                        <input type="text" id="articleTitle" tabindex="1"
+                               value="<#if article??>${article.articleTitle}</#if>" placeholder="${titleLabel}" />
+                    </div>
                     <div class="article-content">
-                        <textarea id="articleContent" tabindex="2"
-                                  placeholder="<#if !article?? && 1 == articleType>${addDiscussionEditorPlaceholderLabel}</#if>${addArticleEditorPlaceholderLabel}"><#if article??>${article.articleContent}</#if><#if at??>@${at}</#if></textarea>
+                        <div id="articleContent"
+                             data-placeholder="<#if !article?? && 1 == articleType>${addDiscussionEditorPlaceholderLabel}</#if>${addArticleEditorPlaceholderLabel}"></div>
+                        <textarea class="fn-none"><#if article??>${article.articleContent?html}</#if><#if at??>@${at}</#if></textarea>
                     </div>
                     <div class="tags-wrap">
-                        <div class="tags-input"><span class="tags-selected"></span>
-                        <input id="articleTags" type="text" tabindex="3" 
+                        <div class="tags-input fn-flex"><span class="tags-selected"></span>
+                        <input id="articleTags" type="text" tabindex="3" class="fn-flex-1"
                                value="<#if article??>${article.articleTags}<#else>${tags}</#if>" placeholder="${tagLabel}（${tagSeparatorTipLabel}）" autocomplete="off" />
                         </div>
                         <#if addArticleDomains?size != 0>
@@ -48,20 +66,29 @@
                         </#if>
                         <br/>
                     </div>
+                    <#if (!article?? && 5 == articleType) || (article?? && article.articleType == 5)>
+                    <div class="form">
+                        <input id="articleAskPoint"
+                               value="<#if article??>${article.articleQnAOfferPoint}</#if>"
+                               type="number" tabindex="5" min="1" placeholder="${qnaOfferPointLabel}"/>
+                    </div>
+                    <#else>
                     <button id="showReward" class="fn-ellipsis" onclick="$(this).next().show(); $(this).hide()">
                         ${rewardEditorPlaceholderLabel} &dtrif;
                     </button>
                     <div class="fn-none">
                         <div class="fn-clear article-reward-content">
-                            <textarea id="articleRewardContent" tabindex="4"
-                                      placeholder="${rewardEditorPlaceholderLabel}"><#if article??>${article.articleRewardContent}</#if></textarea>
+                            <div id="articleRewardContent"
+                                 data-placeholder="${rewardEditorPlaceholderLabel}"></div>
+                            <textarea class="fn-none"><#if article??>${article.articleRewardContent}</#if></textarea>
                         </div><br>
-                        <div>
+                        <div class="form">
                             <input id="articleRewardPoint" type="number" tabindex="5" min="1" 
                                    <#if article?? && 0 < article.articleRewardPoint>data-orval="${article.articleRewardPoint}"</#if> 
                                    value="<#if article?? && 0 < article.articleRewardPoint>${article.articleRewardPoint}</#if>" placeholder="${rewardPointLabel}" />
                         </div>
                     </div>
+                    </#if>
                     <div class="fn-hr10"></div>
                     <div class="tip" id="addArticleTip"></div>
                     <div class="fn-hr10"></div>
@@ -83,25 +110,29 @@
                             <input tabindex="8" type="radio" name="articleType" <#if 2 == articleType>checked="checked"</#if> value="2"/> 
                                    ${cityBroadcastLabel}
                         </label>
+                        <label> &nbsp;
+                            <input type="radio" name="articleType" <#if 5 == articleType>checked="checked"</#if>
+                                   value="5"/>
+                            ${qnaLabel}
+                        </label>
                         <#else>
                         <input class="fn-none" type="radio" name="articleType" value="${article.articleType}" checked="checked"/> 
                         </#if>
                     </div>
                     <div class="fn-clear">
-                        <#if article?? && permissions["commonRemoveArticle"].permissionGrant>
-                            <label class="ft-red fn-pointer" tabindex="11" onclick="AddArticle.remove('${csrfToken}', this)">${removeArticleLabel} &nbsp; &nbsp;</label>
-                        </#if>
-                        <#if hasB3Key>
-                            <label class="article-anonymous">${syncLabel}<input
-                                <#if article??> disabled="disabled"<#if article.syncWithSymphonyClient> checked</#if></#if>
-                                type="checkbox" id="syncWithSymphonyClient"></label>
-                        </#if>
-                        <#if permissions["commonAddArticleAnonymous"].permissionGrant>
+                        <#if permissions["commonAddArticleAnonymous"].permissionGrant && articleType != 2 && articleType != 5>
                             <label class="article-anonymous">&nbsp;  ${anonymousLabel}<input
                                 <#if article??> disabled="disabled"<#if 1 == article.articleAnonymous> checked</#if></#if>
                                 type="checkbox" id="articleAnonymous"></label>
                         </#if>
-
+                        <label class="article-anonymous">&nbsp;  ${showInListLabel}<input
+                                <#if (article?? && (1 == article.articleShowInList)) || !article??> checked="checked"</#if>
+                                                                                                     type="checkbox" id="articleShowInList"></label>
+                        <label class="article-anonymous">&nbsp;  ${commentableLabel}<input
+                                <#if (article?? && article.articleCommentable) || !article??> checked="checked"</#if>
+                                                type="checkbox" id="articleCommentable"></label>
+                        <label class="article-anonymous">&nbsp;  ${notifyFollowersLabel}<input type="checkbox" id="articleNotifyFollowers"></label>
+                        <br/><br/>
                         <#if article??>
                             <#if permissions["commonUpdateArticle"].permissionGrant>
                                 <button class="fn-right" tabindex="10" onclick="AddArticle.add('${csrfToken}', this)">${submitLabel}</button>
@@ -110,6 +141,10 @@
                             <#if permissions["commonAddArticle"].permissionGrant>
                                 <button class="fn-right" tabindex="10" onclick="AddArticle.add('${csrfToken}', this)">${postLabel}</button>
                             </#if>
+                        </#if>
+                        <span class="fn-right">&nbsp; &nbsp;</span>
+                        <#if article?? && permissions["commonRemoveArticle"].permissionGrant>
+                            <button class="red fn-right" tabindex="11" onclick="AddArticle.remove('${csrfToken}', this)">${removeArticleLabel}</button>
                         </#if>
                     </div>
                     <br/>
@@ -129,16 +164,18 @@
                             <#elseif 3 == articleType>
                                 <svg><use xlink:href="#video"></use></svg> ${thoughtLabel}
                             <span class="ft-gray">${addThoughtArticleTipLabel}
-                                <a href="https://hacpai.com/article/1441942422856" target="_blank">(?)</a></span>
+                                <a href="${servePath}/about" target="_blank">(?)</a></span>
+                            <#elseif 5 == articleType>
+                            <svg class="post__info">
+                                <use xlink:href="#iconAsk"></use>
+                            </svg> ${qnaLabel}
+                            <span class="ft-gray">${addAskArticleTipLabel}</span>
                             </#if>
                     </div>
                 </div>
             </div>
         </div>
         <#include "../footer.ftl"/>
-        <script src="${staticServePath}/js/lib/editor/codemirror.min.js?4.13"></script>
-        <script src="${staticServePath}/js/lib/highlight.js-9.6.0/highlight.pack.js"></script>
-        <script src="${staticServePath}/js/lib/jquery/file-upload-9.10.1/jquery.fileupload.min.js"></script>
         <script src="${staticServePath}/js/lib/sound-recorder/SoundRecorder.js"></script>
         <script>
             Label.articleTitleErrorLabel = "${articleTitleErrorLabel}";
@@ -165,35 +202,14 @@
             Label.helpLabel = '${helpLabel}';
             Label.fullscreenLabel = '${fullscreenLabel}';
             Label.uploadFileLabel = '${uploadFileLabel}';
-            Label.qiniuDomain = '${qiniuDomain}';
-            Label.qiniuUploadToken = '${qiniuUploadToken}';
             Label.commonAtUser = '${permissions["commonAtUser"].permissionGrant?c}';
             <#if article??>Label.articleOId = '${article.oId}' ;</#if>
             Label.articleType = ${articleType};
             Label.confirmRemoveLabel = '${confirmRemoveLabel}';
         </script>
+        <#if 3 == articleType>
+            <script src="${staticServePath}/js/lib/diff2html/diff.min.js"></script>
+        </#if>
         <script src="${staticServePath}/js/add-article${miniPostfix}.js?${staticResourceVersion}"></script>
-        <script>
-            Util.uploadFile({
-                "id": "fileUpload",
-                "pasteZone": $("#articleContent").next().next(),
-                "qiniuUploadToken": "${qiniuUploadToken}",
-                "editor": AddArticle.editor,
-                "uploadingLabel": "${uploadingLabel}",
-                "qiniuDomain": "${qiniuDomain}",
-                "imgMaxSize": ${imgMaxSize?c},
-                "fileMaxSize": ${fileMaxSize?c}
-            });
-            Util.uploadFile({
-                "id": "rewardFileUpload",
-                "pasteZone": $("#articleRewardContent").next().next(),
-                "qiniuUploadToken": "${qiniuUploadToken}",
-                "editor": AddArticle.rewardEditor,
-                "uploadingLabel": "${uploadingLabel}",
-                "qiniuDomain": "${qiniuDomain}",
-                "imgMaxSize": ${imgMaxSize?c},
-                "fileMaxSize": ${fileMaxSize?c}
-            });
-        </script>
     </body>
 </html>

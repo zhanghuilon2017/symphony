@@ -1,3 +1,22 @@
+<#--
+
+    Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+    Copyright (C) 2012-present, b3log.org
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
 <#include "../macro-head.ftl">
 <!DOCTYPE html>
 <html>
@@ -12,7 +31,7 @@
         <div class="main">
             <div class="wrapper">
                 <div class="module">
-                    <h2 class="sub-head">${reloginLabel}</h2>
+                    <h2 class="sub-head">${sc403Label}</h2>
                     <div class="need-login">
                         <button onclick="Util.goLogin()" class="red">${loginLabel}</button> &nbsp;
                         <button onclick="Util.goRegister()" class="green">${nowLabel}${registerLabel}</button>
@@ -20,41 +39,10 @@
                         ${indexIntroLabel} &nbsp; &nbsp;
                         <a href="https://github.com/b3log/symphony" target="_blank" class="tooltipped tooltipped-n" aria-label="${siteCodeLabel}">
                             <svg class="icon-github"><use xlink:href="#github"></use></svg></a> &nbsp;
-                        <a href="http://weibo.com/u/2778228501" target="_blank" class="tooltipped tooltipped-n" aria-label="${followWeiboLabel}">
-                            <svg class="icon-weibo"><use xlink:href="#weibo"></use></svg></a>   &nbsp;
-                        <a target="_blank" class="tooltipped tooltipped-n" aria-label="${joinQQGroupLabel}"
-                           href="http://shang.qq.com/wpa/qunwpa?idkey=981d9282616274abb1752336e21b8036828f715a1c4d0628adcf208f2fd54f3a">
-                            <svg class="icon-qq"><use xlink:href="#qq"></use></svg></a>
                     </div>
                 </div>
             </div>
-            <br>
-            <br>
-            <div class="wrapper">
-                <div class="content">
-                    <div class="module">
-                        <#if timelines?size <= 0>
-                        <div id="emptyTimeline" class="no-list">${emptyTimelineLabel}</div>
-                        </#if>
-                        <div class="list timeline ft-gray single-line<#if timelines?size <= 0> fn-none</#if>">
-                            <ul>
-                                <#list timelines as timeline>
-                                <li>${timeline.content}</li>
-                                </#list>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                <div class="side">
-                    <#include "../side.ftl">
-                </div>
-            </div>
-        </div> 
+        </div>
         <#include '../footer.ftl'/>
-        <script src="${staticServePath}/js/channel${miniPostfix}.js?${staticResourceVersion}"></script>
-        <script>
-            // Init [Timeline] channel
-            TimelineChannel.init("${wsScheme}://${serverHost}:${serverPort}${contextPath}/timeline-channel", 20);
-        </script>
     </body>
 </html>

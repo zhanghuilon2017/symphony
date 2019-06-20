@@ -1,3 +1,22 @@
+<#--
+
+    Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+    Copyright (C) 2012-present, b3log.org
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
 <div class="nav"> 
     <div class="wrapper fn-clear">
         <div class="head-fn fn-left">
@@ -21,11 +40,12 @@
                 <a href="${servePath}/pre-post" title="${addArticleLabel}"><svg><use xlink:href="#addfile"></use></svg></a>
             </#if>
             <a id="aNotifications" class="<#if unreadNotificationCount == 0>no-msg<#else>msg</#if>" href="${servePath}/notifications" title="${messageLabel}">${unreadNotificationCount}</a>
+            <a href="${servePath}/qna"><svg><use xlink:href="#iconAsk"></use></svg></a>
             <a href="${servePath}/recent"><svg><use xlink:href="#refresh"></use></svg></a>
             <#else>
-            <a id="aRegister" href="javascript:Util.goRegister()" class="last ft-blue unlogin" 
-               title="${registerLabel}">${registerLabel}</a>
-            <a href="javascript: Util.goLogin();" title="${loginLabel}" class="unlogin">${loginLabel}</a>
+                <a href="javascript: Util.goLogin();" title="${loginLabel}" class="unlogin">${loginLabel}</a>
+                <a id="aRegister" href="javascript:Util.goRegister()" class="last ft-blue unlogin"
+                 title="${registerLabel}">${registerLabel}</a>
             </#if>
         </div>
     </div>

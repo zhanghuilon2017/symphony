@@ -1,26 +1,26 @@
 /*
- * Symphony - A modern community (forum/SNS/blog) platform written in Java.
- * Copyright (C) 2012-2017,  b3log.org & hacpai.com
+ * Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+ * Copyright (C) 2012-present, b3log.org
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package org.b3log.symphony.service;
 
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.b3log.latke.Keys;
 import org.b3log.latke.Latkes;
-import org.b3log.latke.ioc.inject.Inject;
+import org.b3log.latke.ioc.Inject;
 import org.b3log.latke.logging.Level;
 import org.b3log.latke.logging.Logger;
 import org.b3log.latke.repository.FilterOperator;
@@ -43,7 +43,7 @@ import java.util.List;
  * Sitemap query service.
  *
  * @author <a href="http://88250.b3log.org">Liang Ding</a>
- * @version 1.0.0.0, Sep 24, 2016
+ * @version 1.0.0.1, Mar 31, 2018
  * @since 1.6.0
  */
 @Service
@@ -106,10 +106,9 @@ public class SitemapQueryService {
      * @param sitemap the specified sitemap
      */
     public void genArticles(final Sitemap sitemap) {
-        final Query query = new Query().setCurrentPageNum(1).setPageCount(Integer.MAX_VALUE).
-                addProjection(Keys.OBJECT_ID, String.class).
-                addProjection(Article.ARTICLE_UPDATE_TIME, Long.class).
-                setFilter(new PropertyFilter(Article.ARTICLE_STATUS, FilterOperator.EQUAL, Article.ARTICLE_STATUS_C_VALID)).
+        final Query query = new Query().setPage(1, Integer.MAX_VALUE).setPageCount(Integer.MAX_VALUE).
+                select(Keys.OBJECT_ID, Article.ARTICLE_UPDATE_TIME).
+                setFilter(new PropertyFilter(Article.ARTICLE_STATUS, FilterOperator.NOT_EQUAL, Article.ARTICLE_STATUS_C_INVALID)).
                 addSort(Keys.OBJECT_ID, SortDirection.DESCENDING);
 
         try {

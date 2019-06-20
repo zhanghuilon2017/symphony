@@ -1,3 +1,22 @@
+<#--
+
+    Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+    Copyright (C) 2012-present, b3log.org
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
 <#include "macro-head.ftl">
 <!DOCTYPE html>
 <html>
@@ -33,7 +52,7 @@
                                             ${cmtLabel} ${tag.tagCommentCount?c} 
                                         </span>
                                     </div>
-                                    <div class="content-reset">${tag.tagDescription}</div>
+                                    <div class="vditor-reset">${tag.tagDescription}</div>
                                 </li>
                                 </#list>
                             </ul>
@@ -46,7 +65,7 @@
                         <div class="module-header">
                             <h2>
                                 ${sponsorLabel} 
-                                <a href="https://hacpai.com/article/1460083956075" class="fn-right ft-13 ft-gray" target="_blank">${wantPutOnLabel}</a>
+                                <a href="${servePath}/about" class="fn-right ft-13 ft-gray" target="_blank">${wantPutOnLabel}</a>
                             </h2>
                         </div>
                         <div class="module-panel ad fn-clear">
@@ -55,27 +74,6 @@
                     </div>
                     </#if>
                     </#if>
-                    <div class="module">
-                        <div class="module-header">
-                            <h2>开源项目</h2>
-                        </div>
-                        <div class="module-panel">
-                            <ul class="module-list open-source">
-                                <li>
-                                    <a target="_blank" href="https://github.com/b3log/solo"><b class="ft-red slogan">【Solo】</b></a>
-                                    <a class="title" target="_blank" href="https://github.com/b3log/solo">GitHub 上 Star 数最多的 Java 博客</a>
-                                </li>
-                                <li>
-                                    <a target="_blank" href="https://github.com/b3log/wide"><b class="ft-blue slogan">【Wide】</b></a>
-                                    <a class="title" target="_blank" href="https://github.com/b3log/wide">Golang 黑科技之在线 IDE </a>
-                                </li>
-                                <li class="last">
-                                    <a target="_blank" href="https://github.com/b3log/symphony"> <b class="ft-green slogan">【Sym】</b></a>
-                                    <a class="title" target="_blank" href="https://github.com/b3log/symphony"> 黑客与画家的社区</a>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
                     <div class="module">
                         <div class="module-header">  
                             <h2>
@@ -94,7 +92,7 @@
                                         ${referenceLabel} ${tag.tagReferenceCount?c} &nbsp;
                                         ${cmtLabel} ${tag.tagCommentCount?c} 
                                     </span>
-                                    <div class="content-reset">${tag.tagDescription}</div>
+                                    <div class="vditor-reset">${tag.tagDescription}</div>
                                 </li>
                                 </#list>
                             </ul>

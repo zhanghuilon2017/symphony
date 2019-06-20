@@ -1,19 +1,19 @@
 /*
- * Symphony - A modern community (forum/SNS/blog) platform written in Java.
- * Copyright (C) 2012-2017,  b3log.org & hacpai.com
+ * Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+ * Copyright (C) 2012-present, b3log.org
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package org.b3log.symphony.model;
 
@@ -26,7 +26,7 @@ import java.util.Set;
  * </p>
  *
  * @author <a href="http://88250.b3log.org">Liang Ding</a>
- * @version 1.10.1.1, May 8, 2017
+ * @version 1.12.0.0, Jun 25, 2018
  * @since 1.8.0
  */
 public final class Permission {
@@ -92,6 +92,21 @@ public final class Permission {
      * Id - common - add comment.
      */
     public static final String PERMISSION_ID_C_COMMON_ADD_COMMENT = "commonAddComment";
+
+    /**
+     * Id - common - add breezemoon.
+     */
+    public static final String PERMISSION_ID_C_COMMON_ADD_BREEZEMOON = "commonAddBreezemoon";
+
+    /**
+     * Id - common - update breezemoon.
+     */
+    public static final String PERMISSION_ID_C_COMMON_UPDATE_BREEZEMOON = "commonUpdateBreezemoon";
+
+    /**
+     * Id - common - remove breezemoon.
+     */
+    public static final String PERMISSION_ID_C_COMMON_REMOVE_BREEZEMOON = "commonRemoveBreezemoon";
 
     /**
      * Id - common add comment anonymous.
@@ -259,6 +274,16 @@ public final class Permission {
     public static final String PERMISSION_ID_C_COMMENT_REMOVE_COMMENT = "commentRemoveComment";
 
     /**
+     * Id - breezemoon - update breezemoon.
+     */
+    public static final String PERMISSION_ID_C_BREEZEMOON_UPDATE_BREEZEMOON = "breezemoonUpdateBreezemoon";
+
+    /**
+     * Id - breezemoon - remove breezemoon.
+     */
+    public static final String PERMISSION_ID_C_BREEZEMOON_REMOVE_BREEZEMOON = "breezemoonRemoveBreezemoon";
+
+    /**
      * Id - domain - add domain.
      */
     public static final String PERMISSION_ID_C_DOMAIN_ADD_DOMAIN = "domainAddDomain";
@@ -359,6 +384,11 @@ public final class Permission {
     public static final String PERMISSION_ID_C_MENU_ADMIN_USERS = "menuAdminUsers";
 
     /**
+     * Id - menu - admin - breezemoons.
+     */
+    public static final String PERMISSION_ID_C_MENU_ADMIN_BREEZEMOONS = "menuAdminBreezemoons";
+
+    /**
      * Id - menu - admin - articles.
      */
     public static final String PERMISSION_ID_C_MENU_ADMIN_ARTICLES = "menuAdminArticles";
@@ -397,6 +427,11 @@ public final class Permission {
      * Id - menu - admin - roles.
      */
     public static final String PERMISSION_ID_C_MENU_ADMIN_ROLES = "menuAdminRoles";
+
+    /**
+     * Id - menu - admin - reports.
+     */
+    public static final String PERMISSION_ID_C_MENU_ADMIN_REPORTS = "menuAdminReports";
 
     /**
      * Id - menu - admin - misc.
@@ -459,6 +494,10 @@ public final class Permission {
      */
     public static final int PERMISSION_CATEGORY_C_MENU = 10;
 
+    /**
+     * Category - breezemoon management.
+     */
+    public static final int PERMISSION_CATEGORY_C_BREEZEMOON = 11;
 
     /**
      * Private constructor.

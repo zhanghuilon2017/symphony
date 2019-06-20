@@ -1,3 +1,22 @@
+<#--
+
+    Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+    Copyright (C) 2012-present, b3log.org
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
 <#include "macro-head.ftl">
 <!DOCTYPE html>
 <html>
@@ -34,7 +53,7 @@
                                                 ${cmtLabel} ${tag.tagCommentCount?c}
                                             </span>
                                         </div>
-                                        <div class="content-reset">${tag.tagDescription}</div>
+                                        <div class="vditor-reset">${tag.tagDescription}</div>
                                     </div>
                                 </li>
                                 </#list>
@@ -58,7 +77,7 @@
                                     <div class="avatar-small" style="background-image: url('${staticServePath}/images/tags/${tag.tagIconPath}')" alt="${tag.tagTitle}"></div>
                                     </#if>
                                     <a class="ft-a-title" rel="tag" href="${servePath}/tag/${tag.tagURI}">${tag.tagTitle}</a>
-                                    <div class="content-reset">${tag.tagDescription}</div>
+                                    <div class="vditor-reset">${tag.tagDescription}</div>
                                 </li>
                                 </#list>
                             </ul>

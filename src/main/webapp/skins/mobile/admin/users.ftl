@@ -1,10 +1,29 @@
+<#--
+
+    Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+    Copyright (C) 2012-present, b3log.org
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
 <#include "macro-admin.ftl">
 <#include "../macro-pagination.ftl">
 <@admin "users">
 <div class="admin">
     <div class="list">
         <form method="GET" action="${servePath}/admin/users" class="form wrapper">
-            <input name="userNameOrEmail" type="text" placeholder="${userNameLabel}/${userEmailLabel}"/>
+            <input name="query" type="text" placeholder="${userNameLabel}/${userEmailLabel}/Id"/>
             <button type="submit" class="green">${searchLabel}</button> &nbsp;
             <#if permissions["userAddUser"].permissionGrant>
             <button type="button" class="btn red" onclick="window.location = '${servePath}/admin/add-user'">${addUserLabel}</button>
@@ -20,10 +39,14 @@
                     <a href="${servePath}/admin/user/${item.oId}" class="fn-right tooltipped tooltipped-w ft-a-title" aria-label="${editLabel}"><svg><use xlink:href="#edit"></use></svg></a> &nbsp;
                     <#if item.userStatus == 0>
                     <span class="ft-gray">${validLabel}</span>
+                    <#elseif item.userStatus == 1>
+                    <span class="ft-red">${banLabel}</span>
                     <#elseif item.userStatus == 2>
                     <span class="ft-red">${notVerifiedLabel}</span>
+                    <#elseif item.userStatus == 4>
+                    <span class="ft-red">${deactivateAccountLabel}</span>
                     <#else>
-                    <font class="ft-red">${banLabel}</font>
+                    <span class="ft-red">${invalidLoginLabel}</span>
                     </#if>
                 </div>
                 <div class="fn-clear">

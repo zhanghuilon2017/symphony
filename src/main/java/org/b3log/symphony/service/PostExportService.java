@@ -1,19 +1,19 @@
 /*
- * Symphony - A modern community (forum/SNS/blog) platform written in Java.
- * Copyright (C) 2012-2017,  b3log.org & hacpai.com
+ * Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+ * Copyright (C) 2012-present, b3log.org
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package org.b3log.symphony.service;
 
@@ -25,7 +25,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.b3log.latke.Keys;
 import org.b3log.latke.Latkes;
-import org.b3log.latke.ioc.inject.Inject;
+import org.b3log.latke.ioc.Inject;
 import org.b3log.latke.logging.Level;
 import org.b3log.latke.logging.Logger;
 import org.b3log.latke.repository.FilterOperator;
@@ -37,6 +37,7 @@ import org.b3log.symphony.model.Article;
 import org.b3log.symphony.model.Comment;
 import org.b3log.symphony.model.Pointtransfer;
 import org.b3log.symphony.model.UserExt;
+import org.b3log.symphony.processor.FileUploadProcessor;
 import org.b3log.symphony.repository.ArticleRepository;
 import org.b3log.symphony.repository.CommentRepository;
 import org.b3log.symphony.repository.UserRepository;
@@ -48,13 +49,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 /**
  * Post (article/comment) export service.
  *
  * @author <a href="http://88250.b3log.org">Liang Ding</a>
- * @version 1.0.0.1, Jul 21, 2016
+ * @version 1.0.0.2, Apr 5, 2018
  * @since 1.4.0
  */
 @Service
@@ -96,7 +98,7 @@ public class PostExportService {
      * @return download URL, returns {@code "-1"} if in sufficient balance, returns {@code null} if other exceptions
      */
     public String exportPosts(final String userId) {
-        final int pointDataExport = Symphonys.getInt("pointDataExport");
+        final int pointDataExport = Symphonys.POINT_DATA_EXPORT;
         try {
             final JSONObject user = userRepository.get(userId);
             final int balance = user.optInt(UserExt.USER_POINT);
@@ -114,11 +116,11 @@ public class PostExportService {
 
         Query query = new Query().setFilter(
                 new PropertyFilter(Article.ARTICLE_AUTHOR_ID, FilterOperator.EQUAL, userId)).
-                addProjection(Keys.OBJECT_ID, String.class).
-                addProjection(Article.ARTICLE_TITLE, String.class).
-                addProjection(Article.ARTICLE_TAGS, String.class).
-                addProjection(Article.ARTICLE_CONTENT, String.class).
-                addProjection(Article.ARTICLE_CREATE_TIME, Long.class);
+                select(Keys.OBJECT_ID,
+                        Article.ARTICLE_TITLE,
+                        Article.ARTICLE_TAGS,
+                        Article.ARTICLE_CONTENT,
+                        Article.ARTICLE_CREATE_TIME);
 
         try {
             final JSONArray articles = articleRepository.get(query).optJSONArray(Keys.RESULTS);
@@ -146,11 +148,8 @@ public class PostExportService {
             return null;
         }
 
-        query = new Query().setFilter(
-                new PropertyFilter(Comment.COMMENT_AUTHOR_ID, FilterOperator.EQUAL, userId)).
-                addProjection(Keys.OBJECT_ID, String.class).
-                addProjection(Comment.COMMENT_CONTENT, String.class).
-                addProjection(Comment.COMMENT_CREATE_TIME, Long.class);
+        query = new Query().setFilter(new PropertyFilter(Comment.COMMENT_AUTHOR_ID, FilterOperator.EQUAL, userId)).
+                select(Keys.OBJECT_ID, Comment.COMMENT_CONTENT, Comment.COMMENT_CREATE_TIME);
 
         try {
             final JSONArray comments = commentRepository.get(query).optJSONArray(Keys.RESULTS);
@@ -182,13 +181,13 @@ public class PostExportService {
 
         final boolean succ = null != pointtransferMgmtService.transfer(userId, Pointtransfer.ID_C_SYS,
                 Pointtransfer.TRANSFER_TYPE_C_DATA_EXPORT, Pointtransfer.TRANSFER_SUM_C_DATA_EXPORT,
-                String.valueOf(posts.length()), System.currentTimeMillis());
+                String.valueOf(posts.length()), System.currentTimeMillis(), "");
         if (!succ) {
             return null;
         }
 
         final String uuid = UUID.randomUUID().toString().replaceAll("-", "");
-        String fileKey = "export/" + userId + "/" + uuid + ".zip";
+        String fileKey = "export-" + userId + "-" + uuid + ".zip";
 
         final String tmpDir = System.getProperty("java.io.tmpdir");
         String localFilePath = tmpDir + "/" + uuid + ".json";
@@ -196,27 +195,27 @@ public class PostExportService {
         final File localFile = new File(localFilePath);
 
         try {
-            final byte[] data = posts.toString(2).getBytes("UTF-8");
+            final byte[] data = posts.toString(2).getBytes(StandardCharsets.UTF_8);
 
-            OutputStream output = new FileOutputStream(localFile);
-            IOUtils.write(data, output);
-            IOUtils.closeQuietly(output);
+            try (final OutputStream output = new FileOutputStream(localFile)) {
+                IOUtils.write(data, output);
+            }
 
             final File zipFile = ZipUtil.zip(localFile);
 
             final FileInputStream inputStream = new FileInputStream(zipFile);
             final byte[] zipData = IOUtils.toByteArray(inputStream);
 
-            if (Symphonys.getBoolean("qiniu.enabled")) {
-                final Auth auth = Auth.create(Symphonys.get("qiniu.accessKey"), Symphonys.get("qiniu.secretKey"));
+            if (Symphonys.QN_ENABLED) {
+                final Auth auth = Auth.create(Symphonys.UPLOAD_QINIU_AK, Symphonys.UPLOAD_QINIU_SK);
                 final UploadManager uploadManager = new UploadManager(new Configuration());
-
-                uploadManager.put(zipData, fileKey, auth.uploadToken(Symphonys.get("qiniu.bucket")),
+                uploadManager.put(zipData, fileKey, auth.uploadToken(Symphonys.UPLOAD_QINIU_BUCKET),
                         null, "application/zip", false);
 
-                return Symphonys.get("qiniu.domain") + "/" + fileKey;
+                return Symphonys.UPLOAD_QINIU_DOMAIN + "/" + fileKey;
             } else {
-                final String filePath = Symphonys.get("upload.dir") + fileKey;
+                fileKey = FileUploadProcessor.genFilePath(fileKey);
+                final String filePath = Symphonys.UPLOAD_LOCAL_DIR + fileKey;
 
                 FileUtils.copyFile(zipFile, new File(filePath));
 

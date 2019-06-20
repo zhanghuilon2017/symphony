@@ -1,30 +1,27 @@
 /*
- * Symphony - A modern community (forum/SNS/blog) platform written in Java.
- * Copyright (C) 2012-2017,  b3log.org & hacpai.com
+ * Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+ * Copyright (C) 2012-present, b3log.org
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package org.b3log.symphony.service;
 
 import org.apache.commons.lang.StringUtils;
-import org.b3log.latke.ioc.inject.Inject;
+import org.b3log.latke.ioc.Inject;
 import org.b3log.latke.logging.Level;
 import org.b3log.latke.logging.Logger;
-import org.b3log.latke.repository.RepositoryException;
 import org.b3log.latke.repository.Transaction;
-import org.b3log.latke.repository.annotation.Transactional;
-import org.b3log.latke.service.ServiceException;
 import org.b3log.latke.service.annotation.Service;
 import org.b3log.symphony.model.Pointtransfer;
 import org.b3log.symphony.model.UserExt;
@@ -36,7 +33,7 @@ import org.json.JSONObject;
  * Pointtransfer management service.
  *
  * @author <a href="http://88250.b3log.org">Liang Ding</a>
- * @version 1.2.1.4, May 8, 2017
+ * @version 1.2.1.7, Jun 6, 2019
  * @since 1.3.0
  */
 @Service
@@ -68,11 +65,14 @@ public class PointtransferMgmtService {
      * @param sum    the specified sum
      * @param dataId the specified data id
      * @param time   the specified time
+     * @param memo   the specified memo
      * @return transfer record id, returns {@code null} if transfer failed
      */
     public synchronized String transfer(final String fromId, final String toId, final int type, final int sum,
-                                        final String dataId, final long time) {
-        if (StringUtils.equals(fromId, toId)) { // for example the commenter is the article author
+                                        final String dataId, final long time, final String memo) {
+        if (StringUtils.equals(fromId, toId)) {
+            LOGGER.log(Level.WARN, "The from id is equal to the to id [" + fromId + "]");
+
             return null;
         }
 
@@ -81,10 +81,6 @@ public class PointtransferMgmtService {
             int fromBalance = 0;
             if (!Pointtransfer.ID_C_SYS.equals(fromId)) {
                 final JSONObject fromUser = userRepository.get(fromId);
-//                if (UserExt.USER_STATUS_C_VALID != fromUser.optInt(UserExt.USER_STATUS)) {
-//                    throw new Exception("Invalid from user [id=" + fromId + "]");
-//                }
-
                 fromBalance = fromUser.optInt(UserExt.USER_POINT) - sum;
                 if (fromBalance < 0) {
                     throw new Exception("Insufficient balance");
@@ -92,20 +88,15 @@ public class PointtransferMgmtService {
 
                 fromUser.put(UserExt.USER_POINT, fromBalance);
                 fromUser.put(UserExt.USER_USED_POINT, fromUser.optInt(UserExt.USER_USED_POINT) + sum);
-                userRepository.update(fromId, fromUser);
+                userRepository.update(fromId, fromUser, UserExt.USER_POINT, UserExt.USER_USED_POINT);
             }
 
             int toBalance = 0;
             if (!Pointtransfer.ID_C_SYS.equals(toId)) {
                 final JSONObject toUser = userRepository.get(toId);
-//                if (UserExt.USER_STATUS_C_VALID != toUser.optInt(UserExt.USER_STATUS)) {
-//                    throw new Exception("Invalid to user [id=" + toId + "]");
-//                }
-
                 toBalance = toUser.optInt(UserExt.USER_POINT) + sum;
                 toUser.put(UserExt.USER_POINT, toBalance);
-
-                userRepository.update(toId, toUser);
+                userRepository.update(toId, toUser, UserExt.USER_POINT);
             }
 
             final JSONObject pointtransfer = new JSONObject();
@@ -117,6 +108,7 @@ public class PointtransferMgmtService {
             pointtransfer.put(Pointtransfer.TIME, time);
             pointtransfer.put(Pointtransfer.TYPE, type);
             pointtransfer.put(Pointtransfer.DATA_ID, dataId);
+            pointtransfer.put(Pointtransfer.MEMO, memo);
 
             final String ret = pointtransferRepository.add(pointtransfer);
 
@@ -128,35 +120,10 @@ public class PointtransferMgmtService {
                 transaction.rollback();
             }
 
-            LOGGER.log(Level.ERROR, "Transfer [fromId=" + fromId + ", toId=" + toId + ", sum=" + sum + ", type=" + type
-                    + ", dataId=" + dataId + "] error", e);
+            LOGGER.log(Level.ERROR, "Transfer [fromId=" + fromId + ", toId=" + toId + ", sum=" + sum +
+                    ", type=" + type + ", dataId=" + dataId + ", memo=" + memo + "] error", e);
 
             return null;
-        }
-    }
-
-    /**
-     * Adds a pointtransfer with the specified request json object.
-     *
-     * @param requestJSONObject the specified request json object, for example,
-     *                          "fromId"; "",
-     *                          "toId": "",
-     *                          "sum": int,
-     *                          "blance": int,
-     *                          "time": long,
-     *                          "type": int,
-     *                          "dataId": ""
-     * @throws ServiceException service exception
-     */
-    @Transactional
-    public void addPointtransfer(final JSONObject requestJSONObject) throws ServiceException {
-        try {
-            pointtransferRepository.add(requestJSONObject);
-        } catch (final RepositoryException e) {
-            final String msg = "Adds pointtransfer failed";
-            LOGGER.log(Level.ERROR, msg, e);
-
-            throw new ServiceException(msg);
         }
     }
 }

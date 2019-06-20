@@ -1,3 +1,22 @@
+<#--
+
+    Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+    Copyright (C) 2012-present, b3log.org
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
 <#include "macro-head.ftl">
 <#include "common/sub-nav.ftl">
 <!DOCTYPE html>
@@ -27,8 +46,9 @@
                                           aria-label="${article.articleAuthorName}"
                                           style="background-image:url('${article.articleAuthorThumbnailURL20}')"></span>
                                     <#if "someone" != article.articleAuthorName></a></#if>
-                                <a rel="nofollow" class="title" href="${servePath}${article.articlePermalink}">${article.articleTitleEmoj}</a>
-                                <a class="fn-right count ft-gray ft-smaller" href="${servePath}${article.articlePermalink}">${article.articleViewCount}</a>
+                                <a rel="nofollow" class="title fn-ellipsis" href="${servePath}${article.articlePermalink}">${article.articleTitleEmoj}</a>
+                                <a class="fn-right count ft-gray ft-smaller" href="${servePath}${article.articlePermalink}"><#if article.articleViewCount < 1000>
+                                    ${article.articleViewCount}<#else>${article.articleViewCntDisplayFormat}</#if></a>
                             </li>
                             </#list>
                         </ul>
@@ -48,7 +68,7 @@
                                           aria-label="${article.articleAuthorName}"
                                           style="background-image:url('${article.articleAuthorThumbnailURL20}')"></span>
                                     <#if "someone" != article.articleAuthorName></a></#if>
-                                <a rel="nofollow" class="title" href="${servePath}${article.articlePermalink}">${article.articleTitleEmoj}</a>
+                                <a rel="nofollow" class="title fn-ellipsis" href="${servePath}${article.articlePermalink}">${article.articleTitleEmoj}</a>
                                 <a class="fn-right count ft-gray ft-smaller" href="${servePath}${article.articlePermalink}">${article.articleViewCount}</a>
                             </li>
                             </#list>
@@ -78,34 +98,10 @@
         <div class="fn-hr10"></div>
         <div class="main">
             <div class="wrapper">
-                <div class="module">
-                    <div class="module-header" style="background-color: #4e68ca">
-                        <a href="${servePath}/timeline">${timelineLabel}</a>
-                    </div>
-                    <div class="module-panel">
-                        <#if timelines?size <= 0>
-                            <ul class="module-list">
-                                <li>
-                                ${emptyTimelineLabel}
-                                </li>
-                            </ul>
-                        <#else>
-                            <ul class="module-list">
-                                <#list timelines as article>
-                                <#if article_index < 3>
-                                <li<#if !article_has_next> class="last"</#if>>
-                                    ${article.content}
-                                    </#if>
-                                </li>
-                                </#list>
-                            </ul>
-                        </#if>
-                    </div>
-                </div>
                 <#if ADLabel != ''>
                 <div class="module">
                     <div class="module-header" style="background-color: #7ea5c8">
-                        <a href="https://hacpai.com/article/1460083956075">${sponsorLabel}</a>
+                        <a href="${servePath}/about">${sponsorLabel}</a>
                     </div>
                     <div class="ad module-panel fn-clear">
                         ${ADLabel}
@@ -118,7 +114,7 @@
                     </div>
                     <div class="module-panel">
                         <ul class="module-list">
-                            <li><a class="title" href="<#if useCaptchaCheckin??>${servePath}/activity/checkin<#else>${servePath}/activity/daily-checkin</#if>">${activityDailyCheckinLabel}</a></li>
+                            <li><a class="title" href="${servePath}/activity/daily-checkin">${activityDailyCheckinLabel}</a></li>
                             <li><a class="title" href="${servePath}/activity/yesterday-liveness-reward">${activityYesterdayLivenessRewardLabel}</a></li>
                             <li><a class="title" href="${servePath}/activity/1A0001">${activity1A0001Label}</a></li>
                             <li><a class="title" href="${servePath}/activity/character">${characterLabel}</a></li>
@@ -132,11 +128,6 @@
         ${indexIntroLabel}&nbsp;
         <a href="https://github.com/b3log/symphony" target="_blank">
             <svg><use xlink:href="#github"></use></svg></a>
-        <a href="http://weibo.com/u/2778228501" target="_blank">
-            <svg><use xlink:href="#weibo"></use></svg></a>
-        <a target="_blank"
-           href="http://shang.qq.com/wpa/qunwpa?idkey=981d9282616274abb1752336e21b8036828f715a1c4d0628adcf208f2fd54f3a">
-            <svg><use xlink:href="#qq"></use></svg></a>
     </div>
     <#include "footer.ftl">
 </body>

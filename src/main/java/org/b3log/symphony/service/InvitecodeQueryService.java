@@ -1,24 +1,24 @@
 /*
- * Symphony - A modern community (forum/SNS/blog) platform written in Java.
- * Copyright (C) 2012-2017,  b3log.org & hacpai.com
+ * Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+ * Copyright (C) 2012-present, b3log.org
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package org.b3log.symphony.service;
 
 import org.b3log.latke.Keys;
-import org.b3log.latke.ioc.inject.Inject;
+import org.b3log.latke.ioc.Inject;
 import org.b3log.latke.logging.Level;
 import org.b3log.latke.logging.Logger;
 import org.b3log.latke.model.Pagination;
@@ -112,13 +112,12 @@ public class InvitecodeQueryService {
     /**
      * Gets invitecodes by the specified request json object.
      *
-     * @param requestJSONObject the specified request json object, for example,      <pre>
-     *                                                   {
-     *                                                       "paginationCurrentPageNum": 1,
-     *                                                       "paginationPageSize": 20,
-     *                                                       "paginationWindowSize": 10
-     *                                                   }, see {@link Pagination} for more details
-     *                                                   </pre>
+     * @param requestJSONObject the specified request json object, for example,
+     *                          {
+     *                          "paginationCurrentPageNum": 1,
+     *                          "paginationPageSize": 20,
+     *                          "paginationWindowSize": 10
+     *                          }
      * @return for example,      <pre>
      * {
      *     "pagination": {
@@ -133,27 +132,25 @@ public class InvitecodeQueryService {
      *      }, ....]
      * }
      * </pre>
-     * @throws ServiceException service exception
      * @see Pagination
      */
-    public JSONObject getInvitecodes(final JSONObject requestJSONObject) throws ServiceException {
+    public JSONObject getInvitecodes(final JSONObject requestJSONObject) {
         final JSONObject ret = new JSONObject();
 
         final int currentPageNum = requestJSONObject.optInt(Pagination.PAGINATION_CURRENT_PAGE_NUM);
         final int pageSize = requestJSONObject.optInt(Pagination.PAGINATION_PAGE_SIZE);
         final int windowSize = requestJSONObject.optInt(Pagination.PAGINATION_WINDOW_SIZE);
-        final Query query = new Query().setCurrentPageNum(currentPageNum).setPageSize(pageSize).
+        final Query query = new Query().setPage(currentPageNum, pageSize).
                 addSort(Invitecode.STATUS, SortDirection.DESCENDING).
                 addSort(Keys.OBJECT_ID, SortDirection.DESCENDING);
 
-        JSONObject result = null;
-
+        JSONObject result;
         try {
             result = invitecodeRepository.get(query);
         } catch (final RepositoryException e) {
             LOGGER.log(Level.ERROR, "Gets invitecodes failed", e);
 
-            throw new ServiceException(e);
+            return null;
         }
 
         final int pageCount = result.optJSONObject(Pagination.PAGINATION).optInt(Pagination.PAGINATION_PAGE_COUNT);
@@ -165,7 +162,7 @@ public class InvitecodeQueryService {
         pagination.put(Pagination.PAGINATION_PAGE_NUMS, pageNums);
 
         final JSONArray data = result.optJSONArray(Keys.RESULTS);
-        final List<JSONObject> invitecodes = CollectionUtils.<JSONObject>jsonArrayToList(data);
+        final List<JSONObject> invitecodes = CollectionUtils.jsonArrayToList(data);
 
         ret.put(Invitecode.INVITECODES, invitecodes);
 
@@ -184,15 +181,14 @@ public class InvitecodeQueryService {
      *     ....
      * }
      * </pre>, returns {@code null} if not found
-     * @throws ServiceException service exception
      */
-    public JSONObject getInvitecodeById(final String invitecodeId) throws ServiceException {
+    public JSONObject getInvitecodeById(final String invitecodeId) {
         try {
             return invitecodeRepository.get(invitecodeId);
         } catch (final RepositoryException e) {
             LOGGER.log(Level.ERROR, "Gets an invitecode failed", e);
 
-            throw new ServiceException(e);
+            return null;
         }
     }
 

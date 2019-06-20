@@ -1,23 +1,23 @@
 /*
- * Symphony - A modern community (forum/SNS/blog) platform written in Java.
- * Copyright (C) 2012-2017,  b3log.org & hacpai.com
+ * Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+ * Copyright (C) 2012-present, b3log.org
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package org.b3log.symphony.model.sitemap;
 
-import org.b3log.latke.util.Strings;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -242,19 +242,19 @@ public final class Sitemap {
             stringBuilder.append(loc);
             stringBuilder.append(END_LOC_ELEMENT);
 
-            if (!Strings.isEmptyOrNull(lastMod)) {
+            if (StringUtils.isNotBlank(lastMod)) {
                 stringBuilder.append(START_LAST_MOD_ELEMENT);
                 stringBuilder.append(lastMod);
                 stringBuilder.append(END_LAST_MOD_ELEMENT);
             }
 
-            if (!Strings.isEmptyOrNull(changeFreq)) {
+            if (StringUtils.isNotBlank(changeFreq)) {
                 stringBuilder.append(START_CHANGE_REQ_ELEMENT);
                 stringBuilder.append(changeFreq);
                 stringBuilder.append(END_CHANGE_REQ_ELEMENT);
             }
 
-            if (!Strings.isEmptyOrNull(priority)) {
+            if (StringUtils.isNotBlank(priority)) {
                 stringBuilder.append(START_PRIORITY_ELEMENT);
                 stringBuilder.append(priority);
                 stringBuilder.append(END_PRIORITY_ELEMENT);

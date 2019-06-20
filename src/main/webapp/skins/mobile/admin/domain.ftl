@@ -1,3 +1,22 @@
+<#--
+
+    Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+    Copyright (C) 2012-present, b3log.org
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
 <#include "macro-admin.ftl">
 <@admin "domains">
 <div class="wrapper">
@@ -63,6 +82,12 @@
 
                 <label for="domainSort">${sortLabel}</label>
                 <input type="text" id="domainSort" name="domainSort" value="${domain.domainSort}" />
+
+                <label>${domainNavLabel}</label>
+                <select id="domainNav" name="domainNav">
+                    <option value="0"<#if 0 == domain.domainNav> selected</#if>>${yesLabel}</option>
+                    <option value="1"<#if 1 == domain.domainNav> selected</#if>>${noLabel}</option>
+                </select>
 
                 <label for="domainType">${typeLabel}</label>
                 <input type="text" id="domainType" name="domainType" value="${domain.domainType}" />

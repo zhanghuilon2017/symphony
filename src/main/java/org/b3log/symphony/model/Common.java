@@ -1,19 +1,19 @@
 /*
- * Symphony - A modern community (forum/SNS/blog) platform written in Java.
- * Copyright (C) 2012-2017,  b3log.org & hacpai.com
+ * Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+ * Copyright (C) 2012-present, b3log.org
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package org.b3log.symphony.model;
 
@@ -21,10 +21,35 @@ package org.b3log.symphony.model;
  * This class defines all common model relevant keys.
  *
  * @author <a href="http://88250.b3log.org">Liang Ding</a>
- * @version 1.62.1.13, Aug 15, 2017
+ * @version 1.73.0.9, Feb 18, 2019
  * @since 0.2.0
  */
 public final class Common {
+
+    /**
+     * Key of old article.
+     */
+    public static final String OLD_ARTICLE = "oldArticle";
+
+    /**
+     * Lock.
+     */
+    public static final String LOCK = "lock";
+
+    /**
+     * Key of is single breezemoon page URL.
+     */
+    public static final String IS_SINGLE_BREEZEMOON_URL = "isSingleBreezemoonURL";
+
+    /**
+     * Key of offered.
+     */
+    public static final String OFFERED = "offered";
+
+    /**
+     * Key of query.
+     */
+    public static final String QUERY = "query";
 
     /**
      * Key of command.
@@ -42,14 +67,14 @@ public final class Common {
     public static final String ADD_ARTICLE_DOMAINS = "addArticleDomains";
 
     /**
+     * Key of all domains.
+     */
+    public static final String ALL_DOMAINS = "allDomains";
+
+    /**
      * Key of data.
      */
     public static final String DATA = "data";
-
-    /**
-     * Key of ISBN.
-     */
-    public static final String ISBN = "ISBN";
 
     /**
      * Key of mans.
@@ -75,16 +100,6 @@ public final class Common {
      * Key of requisite message.
      */
     public static final String REQUISITE_MSG = "requisiteMsg";
-
-    /**
-     * Key of following user articles.
-     */
-    public static final String FOLLOWING_USER_ARTICLES = "followingUserArticles";
-
-    /**
-     * Key of following tag articles.
-     */
-    public static final String FOLLOWING_TAG_ARTICLES = "followingTagArticles";
 
     /**
      * Key of command.
@@ -122,19 +137,9 @@ public final class Common {
     public static final String NAME = "name";
 
     /**
-     * Key of language.
-     */
-    public static final String LANGUAGE = "language";
-
-    /**
      * Key of languages.
      */
     public static final String LANGUAGES = "languages";
-
-    /**
-     * Key of timezone.
-     */
-    public static final String TIMEZONE = "timezone";
 
     /**
      * Key of timezones.
@@ -142,19 +147,9 @@ public final class Common {
     public static final String TIMEZONES = "timezones";
 
     /**
-     * Key of forge.
-     */
-    public static final String FORGE = "forge";
-
-    /**
      * Key of selected.
      */
     public static final String SELECTED = "selected";
-
-    /**
-     * Key of last modified.
-     */
-    public static final String LAST_MOD = "lastModified";
 
     /**
      * Key of invited user count.
@@ -195,6 +190,11 @@ public final class Common {
      * Max length of UA.
      */
     public static final int MAX_LENGTH_UA = 255;
+
+    /**
+     * Max length of URL.
+     */
+    public static final int MAX_LENGTH_URL = 255;
 
     /**
      * Key of words.
@@ -267,6 +267,11 @@ public final class Common {
     public static final String CSRF_TOKEN = "csrfToken";
 
     /**
+     * Key of markdown-http engine available.
+     */
+    public static final String MARKDOWN_HTTP_AVAILABLE = "markdownHttpAvailable";
+
+    /**
      * Key of city.
      */
     public static final String CITY = "city";
@@ -287,11 +292,6 @@ public final class Common {
     public static final String PROVINCE = "province";
 
     /**
-     * Key of new user.
-     */
-    public static final String NEW_USER = "newUser";
-
-    /**
      * Key of is reserved.
      */
     public static final String IS_RESERVED = "isReserved";
@@ -300,16 +300,6 @@ public final class Common {
      * Key of data id.
      */
     public static final String DATA_ID = "dataId";
-
-    /**
-     * Key of data title.
-     */
-    public static final String DATA_TITLE = "dataTitle";
-
-    /**
-     * Key of data link.
-     */
-    public static final String DATA_LINK = "dataLink";
 
     /**
      * Key of memo.
@@ -377,11 +367,6 @@ public final class Common {
     public static final String IS_DAILY_CHECKIN = "isDailyCheckin";
 
     /**
-     * Key of use captcha checkin.
-     */
-    public static final String USE_CAPTCHA_CHECKIN = "useCaptchaCheckin";
-
-    /**
      * Key of mini postfix.
      */
     public static final String MINI_POSTFIX = "miniPostfix";
@@ -447,11 +432,6 @@ public final class Common {
     public static final String TYPE = "type";
 
     /**
-     * Key of activity.
-     */
-    public static final String ACTIVITY = "activity";
-
-    /**
      * Key of recent articles.
      */
     public static final String RECENT_ARTICLES = "recentArticles";
@@ -462,19 +442,24 @@ public final class Common {
     public static final String RECENT = "recent";
 
     /**
-     * Key of timeline.
+     * Key of qna.
      */
-    public static final String TIMELINE = "timeline";
+    public static final String QNA = "qna";
 
     /**
-     * Key of timelines.
+     * Key of watch.
      */
-    public static final String TIMELINES = "timelines";
+    public static final String WATCH = "watch";
 
     /**
-     * Key of hot articles.
+     * Key of watching articles.
      */
-    public static final String HOT_ARTICLES = "hotArticles";
+    public static final String WATCHING_ARTICLES = "watchingArticles";
+
+    /**
+     * Key of watching breezemoons.
+     */
+    public static final String WATCHING_BREEZEMOONS = "watchingBreezemoons";
 
     /**
      * Key of hot.
@@ -495,6 +480,11 @@ public final class Common {
      * Key of side tags.
      */
     public static final String SIDE_TAGS = "sideTags";
+
+    /**
+     * Key of side breezemoons.
+     */
+    public static final String SIDE_BREEZEMOONS = "sideBreezemoons";
 
     /**
      * Key of navigation trend tags.
@@ -552,11 +542,6 @@ public final class Common {
     public static final String INDEX = "index";
 
     /**
-     * Key of user id.
-     */
-    public static final String USER_ID = "userId";
-
-    /**
      * Key of user home articles.
      */
     public static final String USER_HOME_ARTICLES = "userHomeArticles";
@@ -565,6 +550,11 @@ public final class Common {
      * Key of user home comments.
      */
     public static final String USER_HOME_COMMENTS = "userHomeComments";
+
+    /**
+     * Key of user home breezemoons.
+     */
+    public static final String USER_HOME_BREEZEMOONS = "userHomeBreezemoons";
 
     /**
      * Key of user home following users.
@@ -657,11 +647,6 @@ public final class Common {
     public static final String UNREAD_FOLLOWING_NOTIFICATION_CNT = "unreadFollowingNotificationCnt";
 
     /**
-     * Key of follower user count.
-     */
-    public static final String FOLLOWER_USER_CNT = "followerUserCnt";
-
-    /**
      * Key of following user count.
      */
     public static final String FOLLOWING_USER_CNT = "followingUserCnt";
@@ -682,21 +667,6 @@ public final class Common {
     public static final String AUTHOR_NAME = "authorName";
 
     /**
-     * Key of author email.
-     */
-    public static final String AUTHOR_EMAIL = "authorEmail";
-
-    /**
-     * Key of author URL.
-     */
-    public static final String AUTHOR_URL = "authorURL";
-
-    /**
-     * Key of author avatar URL.
-     */
-    public static final String AUTHOR_AVATAR_URL = "authorAvatarURL";
-
-    /**
      * Key of UA.
      */
     public static final String UA = "ua";
@@ -705,16 +675,6 @@ public final class Common {
      * Key of IP.
      */
     public static final String IP = "ip";
-
-    /**
-     * Key of content HTML.
-     */
-    public static final String CONTENT_HTML = "contentHTML";
-
-    /**
-     * Key of is article author.
-     */
-    public static final String IS_ARTICLE_AUTHOR = "isArticleAuthor";
 
     /**
      * Key of content.
@@ -727,19 +687,9 @@ public final class Common {
     public static final String THUMBNAIL_URL = "thumbnailURL";
 
     /**
-     * Key of thumbnail update time.
-     */
-    public static final String THUMBNAIL_UPDATE_TIME = "thumbnailUpdateTime";
-
-    /**
      * Key of URL.
      */
     public static final String URL = "url";
-
-    /**
-     * Key of update time.
-     */
-    public static final String UPDATE_TIME = "updateTime";
 
     /**
      * Key of Create time.
@@ -760,6 +710,11 @@ public final class Common {
      * Key of site visit statistic code.
      */
     public static final String SITE_VISIT_STAT_CODE = "siteVisitStatCode";
+
+    /**
+     * Key of footer bei an hao.
+     */
+    public static final String FOOTER_BEI_AN_HAO = "footerBeiAnHao";
 
     /**
      * Key of online visitor count.
@@ -787,14 +742,14 @@ public final class Common {
     public static final String ARTICLE_LIST_CHANNEL_CNT = "articleListChannelCnt";
 
     /**
-     * Key of symphony key.
+     * Key of thread count.
      */
-    public static final String SYMPHONY_KEY = "symphonyKey";
+    public static final String THREAD_CNT = "threadCnt";
 
     /**
-     * Key of from client.
+     * Key of DB connection count.
      */
-    public static final String FROM_CLIENT = "fromClient";
+    public static final String DB_CONN_CNT = "dbConnCnt";
 
     /**
      * Key of article comments page size.
@@ -815,11 +770,6 @@ public final class Common {
      * Key of usernames.
      */
     public static final String USER_NAMES = "userNames";
-
-    /**
-     * Key of username or email.
-     */
-    public static final String USER_NAME_OR_EMAIL = "userNameOrEmail";
 
     /**
      * Key of operation.
@@ -852,11 +802,6 @@ public final class Common {
     public static final String BALANCE = "balance";
 
     /**
-     * Key of plus.
-     */
-    public static final String PLAUS = "plus";
-
-    /**
      * Key of referral.
      */
     public static final String REFERRAL = "referral";
@@ -875,6 +820,16 @@ public final class Common {
      * Key of top checkin users.
      */
     public static final String TOP_CHECKIN_USERS = "topCheckinUsers";
+
+    /**
+     * Key of top links.
+     */
+    public static final String TOP_LINKS = "topLinks";
+
+    /**
+     * Key of top.
+     */
+    public static final String TOP = "top";
 
     /**
      * Private constructor.

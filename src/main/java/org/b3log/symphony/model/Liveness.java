@@ -1,19 +1,19 @@
 /*
- * Symphony - A modern community (forum/SNS/blog) platform written in Java.
- * Copyright (C) 2012-2017,  b3log.org & hacpai.com
+ * Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+ * Copyright (C) 2012-present, b3log.org
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package org.b3log.symphony.model;
 
@@ -24,7 +24,7 @@ import org.json.JSONObject;
  * This class defines all liveness model relevant keys.
  *
  * @author <a href="http://88250.b3log.org">Liang Ding</a>
- * @version 1.0.0.1, Aug 17, 2016
+ * @version 1.1.0.0, Jun 12, 2018
  * @since 1.4.0
  */
 public final class Liveness {
@@ -85,19 +85,25 @@ public final class Liveness {
     public static final String LIVENESS_PV = "livenessPV";
 
     /**
+     * Key of liveness accept answer.
+     */
+    public static final String LIVENESS_ACCEPT_ANSWER = "livenessAcceptAnswer";
+
+    /**
      * Calculates point of the specified liveness.
      *
      * @param liveness the specified liveness
      * @return point
      */
     public static int calcPoint(final JSONObject liveness) {
-        final float activityPer = Symphonys.getFloat("activitYesterdayLivenessReward.activity.perPoint");
-        final float articlePer = Symphonys.getFloat("activitYesterdayLivenessReward.article.perPoint");
-        final float commentPer = Symphonys.getFloat("activitYesterdayLivenessReward.comment.perPoint");
-        final float pvPer = Symphonys.getFloat("activitYesterdayLivenessReward.pv.perPoint");
-        final float rewardPer = Symphonys.getFloat("activitYesterdayLivenessReward.reward.perPoint");
-        final float thankPer = Symphonys.getFloat("activitYesterdayLivenessReward.thank.perPoint");
-        final float votePer = Symphonys.getFloat("activitYesterdayLivenessReward.vote.perPoint");
+        final float activityPer = Symphonys.ACTIVITY_YESTERDAY_REWARD_ACTIVITY_PER;
+        final float articlePer = Symphonys.ACTIVITY_YESTERDAY_REWARD_ARTICLE_PER;
+        final float commentPer = Symphonys.ACTIVITY_YESTERDAY_REWARD_COMMENT_PER;
+        final float pvPer = Symphonys.ACTIVITY_YESTERDAY_REWARD_PV_PER;
+        final float rewardPer = Symphonys.ACTIVITY_YESTERDAY_REWARD_REWARD_PER;
+        final float thankPer = Symphonys.ACTIVITY_YESTERDAY_REWARD_THANK_PER;
+        final float votePer = Symphonys.ACTIVITY_YESTERDAY_REWARD_VOTE_PER;
+        final float acceptAnswerPer = Symphonys.ACTIVITY_YESTERDAY_REWARD_ACCEPT_ANSWER_PER;
 
         final int activity = liveness.optInt(Liveness.LIVENESS_ACTIVITY);
         final int article = liveness.optInt(Liveness.LIVENESS_ARTICLE);
@@ -112,6 +118,7 @@ public final class Liveness {
         if (vote > 10) {
             vote = 10;
         }
+        final int acceptAnswer = liveness.optInt(Liveness.LIVENESS_ACCEPT_ANSWER);
 
         final int activityPoint = (int) (activity * activityPer);
         final int articlePoint = (int) (article * articlePer);
@@ -120,10 +127,11 @@ public final class Liveness {
         final int rewardPoint = (int) (reward * rewardPer);
         final int thankPoint = (int) (thank * thankPer);
         final int votePoint = (int) (vote * votePer);
+        final int acceptAnswerPoint = (int) (acceptAnswer * acceptAnswerPer);
 
-        int ret = activityPoint + articlePoint + commentPoint + pvPoint + rewardPoint + thankPoint + votePoint;
+        int ret = activityPoint + articlePoint + commentPoint + pvPoint + rewardPoint + thankPoint + votePoint + acceptAnswerPoint;
 
-        final int max = Symphonys.getInt("activitYesterdayLivenessReward.maxPoint");
+        final int max = Symphonys.ACTIVITY_YESTERDAY_REWARD_MAX;
         if (ret > max) {
             ret = max;
         }

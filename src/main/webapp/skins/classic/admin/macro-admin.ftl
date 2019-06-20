@@ -1,3 +1,22 @@
+<#--
+
+    Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+    Copyright (C) 2012-present, b3log.org
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
 <#macro admin type>
 <#include "../macro-head.ftl">
 <!DOCTYPE html>
@@ -17,8 +36,10 @@
         </#if>
         <#if type == "comments">
         <@head title="${commentAdminLabel} - ${symphonyLabel}">
-        <link rel="stylesheet" href="${staticServePath}/js/lib/highlight.js-9.6.0/styles/github.css">
         </@head>
+        </#if>
+        <#if type == "breezemoons">
+        <@head title="${breezemoonAdminLabel} - ${symphonyLabel}"></@head>
         </#if>
         <#if type == "addDomain">
         <@head title="${addDomainLabel} - ${symphonyLabel}"></@head>
@@ -53,6 +74,12 @@
         <#if type == "roles">
             <@head title="${rolesAdminLabel} - ${symphonyLabel}"></@head>
         </#if>
+        <#if type == "reports">
+            <@head title="${reportsAdminLabel} - ${symphonyLabel}"></@head>
+        </#if>
+        <#if type == "auditlog">
+            <@head title="${auditlogLabel} - ${symphonyLabel}"></@head>
+        </#if>
         <link rel="stylesheet" href="${staticServePath}/css/home.css?${staticResourceVersion}" />
     </head>
     <body>
@@ -76,6 +103,9 @@
                                 <#if permissions["menuAdminComments"].permissionGrant>
                                 <a href="${servePath}/admin/comments"<#if type == "comments"> class="current"</#if>>${commentAdminLabel}</a>
                                 </#if>
+                                <#if permissions["menuAdminBreezemoons"].permissionGrant>
+                                <a href="${servePath}/admin/breezemoons"<#if type == "breezemoons"> class="current"</#if>>${breezemoonAdminLabel}</a>
+                                </#if>
                                 <#if permissions["menuAdminDomains"].permissionGrant>
                                 <a href="${servePath}/admin/domains"<#if type == "domains" || type == "addDomain"> class="current"</#if>>${domainAdminLabel}</a>
                                 </#if>
@@ -94,8 +124,14 @@
                                 <#if permissions["menuAdminRoles"].permissionGrant>
                                 <a href="${servePath}/admin/roles"<#if type == "roles"> class="current"</#if>>${rolesAdminLabel}</a>
                                 </#if>
+                                <#if permissions["menuAdminReports"].permissionGrant>
+                                <a href="${servePath}/admin/reports"<#if type == "reports"> class="current"</#if>>${reportsAdminLabel}</a>
+                                </#if>
                                 <#if permissions["menuAdminMisc"].permissionGrant>
                                 <a href="${servePath}/admin/misc"<#if type == "misc"> class="current"</#if>>${miscAdminLabel}</a>
+                                </#if>
+                                <#if permissions["menuAdmin"].permissionGrant>
+                                <a href="${servePath}/admin/auditlog"<#if type == "auditlog"> class="current"</#if>>${auditlogLabel}</a>
                                 </#if>
                             </nav>
                         </div>
@@ -107,7 +143,49 @@
         <#if type == "comments">
         <script src="${staticServePath}/js/settings${miniPostfix}.js?${staticResourceVersion}"></script>
         <script>
-            Settings.initHljs();
+            Util.parseHljs()
+            Util.parseMarkdown()
+        </script>
+        <#elseif type == 'reports'>
+        <script>
+            AdminReportHandled = function (it, id) {
+                var $btn = $(it);
+                $btn.attr('disabled', 'disabled').css('opacity', '0.3');
+                $.ajax({
+                    url: '/admin/report/' + id,
+                    cache: false,
+                    success: function() {
+                        window.location.reload();
+                    },
+                    complete: function() {
+                        $btn.removeAttr('disabled').css('opacity', '1');
+                    },
+                });
+            }
+            AdminReportCancel = function (it, id) {
+                var $btn = $(it);
+                $btn.attr('disabled', 'disabled').css('opacity', '0.3');
+                $.ajax({
+                    url: '/admin/report/ignore/' + id,
+                    cache: false,
+                    success: function() {
+                        window.location.reload();
+                    },
+                    complete: function() {
+                        $btn.removeAttr('disabled').css('opacity', '1');
+                    },
+                });
+            }
+        </script>
+        <#elseif type == 'auditlog'>
+        <script>
+            $('.auditlogUA').each(function () {
+                var ua = $(this).data('ua'),
+                        name = Util.getDeviceByUa(ua)
+                if (name !== '') {
+                    $(this).html('via ' + name)
+                }
+            })
         </script>
         </#if>
     </body>

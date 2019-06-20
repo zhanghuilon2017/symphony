@@ -1,36 +1,33 @@
 /*
- * Symphony - A modern community (forum/SNS/blog) platform written in Java.
- * Copyright (C) 2012-2017,  b3log.org & hacpai.com
+ * Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+ * Copyright (C) 2012-present, b3log.org
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package org.b3log.symphony.repository;
 
 import org.b3log.latke.Keys;
-import org.b3log.latke.ioc.inject.Inject;
-import org.b3log.latke.logging.Level;
+import org.b3log.latke.ioc.Inject;
 import org.b3log.latke.logging.Logger;
 import org.b3log.latke.repository.*;
 import org.b3log.latke.repository.annotation.Repository;
-import org.b3log.latke.util.CollectionUtils;
+import org.b3log.latke.util.URLs;
 import org.b3log.symphony.cache.TagCache;
 import org.b3log.symphony.model.Tag;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,7 +35,7 @@ import java.util.List;
  * Tag repository.
  *
  * @author <a href="http://88250.b3log.org">Liang Ding</a>
- * @version 1.2.0.1, Nov 4, 2016
+ * @version 1.2.0.3, Jun 6, 2018
  * @since 0.2.0
  */
 @Repository
@@ -85,8 +82,8 @@ public class TagRepository extends AbstractRepository {
     }
 
     @Override
-    public void update(final String id, final JSONObject article) throws RepositoryException {
-        super.update(id, article);
+    public void update(final String id, final JSONObject article, final String... propertyNames) throws RepositoryException {
+        super.update(id, article, propertyNames);
 
         article.put(Keys.OBJECT_ID, id);
         tagCache.putTag(article);
@@ -128,14 +125,7 @@ public class TagRepository extends AbstractRepository {
      * @throws RepositoryException repository exception
      */
     public JSONObject getByURI(final String tagURI) throws RepositoryException {
-        String uri = tagURI;
-
-        try {
-            uri = URLEncoder.encode(tagURI, "UTF-8");
-        } catch (final UnsupportedEncodingException e) {
-            LOGGER.log(Level.ERROR, "Encode tag URI [" + tagURI + "] failed", e);
-        }
-
+        final String uri = URLs.encode(tagURI);
         final Query query = new Query().setFilter(new PropertyFilter(Tag.TAG_URI, FilterOperator.EQUAL, uri))
                 .addSort(Tag.TAG_REFERENCE_CNT, SortDirection.DESCENDING)
                 .setPageCount(1);
@@ -178,12 +168,9 @@ public class TagRepository extends AbstractRepository {
      */
     public List<JSONObject> getMostUsedTags(final int num) throws RepositoryException {
         final Query query = new Query().addSort(Tag.TAG_REFERENCE_CNT, SortDirection.DESCENDING).
-                setCurrentPageNum(1).setPageSize(num).setPageCount(1);
+                setPage(1, num).setPageCount(1);
 
-        final JSONObject result = get(query);
-        final JSONArray array = result.optJSONArray(Keys.RESULTS);
-
-        return CollectionUtils.jsonArrayToList(array);
+        return getList(query);
     }
 
     /**

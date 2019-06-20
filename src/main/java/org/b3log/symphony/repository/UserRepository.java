@@ -1,28 +1,27 @@
 /*
- * Symphony - A modern community (forum/SNS/blog) platform written in Java.
- * Copyright (C) 2012-2017,  b3log.org & hacpai.com
+ * Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+ * Copyright (C) 2012-present, b3log.org
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package org.b3log.symphony.repository;
 
 import org.b3log.latke.Keys;
-import org.b3log.latke.ioc.inject.Inject;
+import org.b3log.latke.ioc.Inject;
 import org.b3log.latke.model.User;
 import org.b3log.latke.repository.*;
 import org.b3log.latke.repository.annotation.Repository;
-import org.b3log.latke.util.CollectionUtils;
 import org.b3log.symphony.cache.UserCache;
 import org.b3log.symphony.model.Role;
 import org.json.JSONArray;
@@ -34,7 +33,7 @@ import java.util.List;
  * User repository.
  *
  * @author <a href="http://88250.b3log.org">Liang Ding</a>
- * @version 2.1.2.0, Oct 2, 2017
+ * @version 2.1.2.3, Jun 6, 2019
  * @since 0.2.0
  */
 @Repository
@@ -72,14 +71,14 @@ public class UserRepository extends AbstractRepository {
     }
 
     @Override
-    public void update(final String id, final JSONObject user) throws RepositoryException {
+    public void update(final String id, final JSONObject user, final String... propertyNames) throws RepositoryException {
         final JSONObject old = get(id);
         if (null == old) {
             return;
         }
 
-        userCache.RemoveUser(old);
-        super.update(id, user);
+        userCache.removeUser(old);
+        super.update(id, user, propertyNames);
         user.put(Keys.OBJECT_ID, id);
         userCache.putUser(user);
     }
@@ -142,29 +141,15 @@ public class UserRepository extends AbstractRepository {
      * @throws RepositoryException repository exception
      */
     public List<JSONObject> getAdmins() throws RepositoryException {
-        final Query query = new Query().setFilter(
-                new PropertyFilter(User.USER_ROLE, FilterOperator.EQUAL, Role.ROLE_ID_C_ADMIN)).setPageCount(1)
-                .addSort(Keys.OBJECT_ID, SortDirection.ASCENDING);
-        final JSONObject result = get(query);
-        final JSONArray array = result.optJSONArray(Keys.RESULTS);
-
-        return CollectionUtils.<JSONObject>jsonArrayToList(array);
-    }
-
-    /**
-     * Determine whether the specified email is administrator's.
-     *
-     * @param email the specified email
-     * @return {@code true} if it is administrator's email, {@code false} otherwise
-     * @throws RepositoryException repository exception
-     */
-    public boolean isAdminEmail(final String email) throws RepositoryException {
-        final JSONObject user = getByEmail(email);
-
-        if (null == user) {
-            return false;
+        List<JSONObject> ret = userCache.getAdmins();
+        if (ret.isEmpty()) {
+            final Query query = new Query().setFilter(
+                    new PropertyFilter(User.USER_ROLE, FilterOperator.EQUAL, Role.ROLE_ID_C_ADMIN)).setPageCount(1)
+                    .addSort(Keys.OBJECT_ID, SortDirection.ASCENDING);
+            ret = getList(query);
+            userCache.putAdmins(ret);
         }
 
-        return Role.ROLE_ID_C_ADMIN.equals(user.optString(User.USER_ROLE));
+        return ret;
     }
 }

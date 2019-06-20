@@ -1,3 +1,22 @@
+<#--
+
+    Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+    Copyright (C) 2012-present, b3log.org
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
 <#include "macro-admin.ftl">
 <@admin "users">
 <div class="wrapper">
@@ -69,7 +88,7 @@
         </div>
         <div class="module-panel form fn-clear">
             <form action="${servePath}/admin/user/${user.oId}" method="POST">
-                <label for="userPassword">${userPasswordLabel}</label>
+                <label for="userPassword">${passwordLabel}</label>
                 <input type="text" id="userPassword" name="userPassword" value="${user.userPassword}" />
 
                 <label for="userNickname">${nicknameLabel}</label>
@@ -185,18 +204,6 @@
                     <option value="1"<#if 1 == user.userUAStatus> selected</#if>>${privateLabel}</option>
                 </select>
 
-                <label>${userTimelineStatusLabel}</label>
-                <select id="userTimelineStatus" name="userTimelineStatus">
-                    <option value="0"<#if 0 == user.userTimelineStatus> selected</#if>>${publicLabel}</option>
-                    <option value="1"<#if 1 == user.userTimelineStatus> selected</#if>>${privateLabel}</option>
-                </select>
-
-                <label>${userForgeLinkStatusLabel}</label>
-                <select id="userForgeLinkStatus" name="userForgeLinkStatus">
-                    <option value="0"<#if 0 == user.userForgeLinkStatus> selected</#if>>${publicLabel}</option>
-                    <option value="1"<#if 1 == user.userForgeLinkStatus> selected</#if>>${privateLabel}</option>
-                </select>
-
                 <label>${joinBalanceRankLabel}</label>
                 <select id="userJoinPointRank" name="userJoinPointRank">
                     <option value="0"<#if 0 == user.userJoinPointRank> selected</#if>>${publicLabel}</option>
@@ -228,25 +235,8 @@
                     <option value="1"<#if 1 == user.userStatus> selected</#if>>${banLabel}</option>
                     <option value="2"<#if 2 == user.userStatus> selected</#if>>${notVerifiedLabel}</option>
                     <option value="3"<#if 3 == user.userStatus> selected</#if>>${invalidLoginLabel}</option>
+                    <option value="3"<#if 4 == user.userStatus> selected</#if>>${deactivateAccountLabel}</option>
                 </select>
-
-                <label>${syncWithSymphonyClientLabel}</label>
-                <select id="syncWithSymphonyClient" name="syncWithSymphonyClient">
-                    <option value="true"<#if user.syncWithSymphonyClient> selected</#if>>${yesLabel}</option>
-                    <option value="false"<#if !user.syncWithSymphonyClient> selected</#if>>${noLabel}</option>
-                </select>
-
-                <label for="userB3Key">B3 Key</label>
-                <input type="text" id="userB3Key" name="userB3Key" value="${user.userB3Key}" />
-
-                <label for="userB3ClientAddArticleURL">${clientArticleLabel}</label>
-                <input type="text" id="userB3ClientAddArticleURL" name="userB3ClientAddArticleURL" value="${user.userB3ClientAddArticleURL}" />
-
-                <label for="userB3ClientUpdateArticleURL">${clientUpdateArticleLabel}</label>
-                <input type="text" id="userB3ClientUpdateArticleURL" name="userB3ClientUpdateArticleURL" value="${user.userB3ClientUpdateArticleURL}" />
-
-                <label for="userB3ClientAddCommentURL">${clientCmtLabel}</label>
-                <input type="text" id="userB3ClientAddCommentURL" name="userB3ClientAddCommentURL" value="${user.userB3ClientAddCommentURL}" />
 
                 <br/><br/>
                 <button type="submit" class="green fn-right">${submitLabel}</button>

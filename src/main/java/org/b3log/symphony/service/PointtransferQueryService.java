@@ -1,36 +1,36 @@
 /*
- * Symphony - A modern community (forum/SNS/blog) platform written in Java.
- * Copyright (C) 2012-2017,  b3log.org & hacpai.com
+ * Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+ * Copyright (C) 2012-present, b3log.org
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package org.b3log.symphony.service;
 
+import org.apache.commons.lang.StringUtils;
 import org.b3log.latke.Keys;
-import org.b3log.latke.ioc.inject.Inject;
+import org.b3log.latke.ioc.Inject;
 import org.b3log.latke.logging.Level;
 import org.b3log.latke.logging.Logger;
 import org.b3log.latke.model.Pagination;
-import org.b3log.latke.model.User;
 import org.b3log.latke.repository.*;
 import org.b3log.latke.service.LangPropsService;
-import org.b3log.latke.service.ServiceException;
 import org.b3log.latke.service.annotation.Service;
 import org.b3log.latke.util.CollectionUtils;
 import org.b3log.symphony.model.*;
 import org.b3log.symphony.repository.*;
 import org.b3log.symphony.util.Emotions;
+import org.b3log.symphony.util.Escapes;
 import org.b3log.symphony.util.Symphonys;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -43,7 +43,7 @@ import java.util.List;
  * Pointtransfer query service.
  *
  * @author <a href="http://88250.b3log.org">Liang Ding</a>
- * @version 1.21.2.1, May 6, 2017
+ * @version 1.21.4.2, Jan 10, 2019
  * @since 1.3.0
  */
 @Service
@@ -115,8 +115,8 @@ public class PointtransferQueryService {
         filters.add(new CompositeFilter(CompositeFilterOperator.OR, userFilters));
         filters.add(new PropertyFilter(Pointtransfer.TYPE, FilterOperator.EQUAL, type));
 
-        final Query query = new Query().addSort(Keys.OBJECT_ID, SortDirection.DESCENDING).setCurrentPageNum(1)
-                .setPageSize(fetchSize).setFilter(new CompositeFilter(CompositeFilterOperator.AND, filters));
+        final Query query = new Query().addSort(Keys.OBJECT_ID, SortDirection.DESCENDING).
+                setPage(1, fetchSize).setFilter(new CompositeFilter(CompositeFilterOperator.AND, filters));
 
         try {
             final JSONObject result = pointtransferRepository.get(query);
@@ -132,19 +132,17 @@ public class PointtransferQueryService {
     /**
      * Gets the top balance users with the specified fetch size.
      *
-     * @param avatarViewMode the specified avatar view mode
-     * @param fetchSize      the specified fetch size
+     * @param fetchSize the specified fetch size
      * @return users, returns an empty list if not found
      */
-    public List<JSONObject> getTopBalanceUsers(final int avatarViewMode, final int fetchSize) {
+    public List<JSONObject> getTopBalanceUsers(final int fetchSize) {
         final List<JSONObject> ret = new ArrayList<>();
 
-        final Query query = new Query().addSort(UserExt.USER_POINT, SortDirection.DESCENDING).setCurrentPageNum(1)
-                .setPageSize(fetchSize).
-                        setFilter(new PropertyFilter(UserExt.USER_JOIN_POINT_RANK,
-                                FilterOperator.EQUAL, UserExt.USER_JOIN_POINT_RANK_C_JOIN));
+        final Query query = new Query().addSort(UserExt.USER_POINT, SortDirection.DESCENDING).
+                setPage(1, fetchSize).
+                setFilter(new PropertyFilter(UserExt.USER_JOIN_POINT_RANK, FilterOperator.EQUAL, UserExt.USER_JOIN_XXX_C_JOIN));
 
-        final int moneyUnit = Symphonys.getInt("pointExchangeUnit");
+        final int moneyUnit = Symphonys.POINT_EXCHANGE_UNIT;
         try {
             final JSONObject result = userRepository.get(query);
             final List<JSONObject> users = CollectionUtils.jsonArrayToList(result.optJSONArray(Keys.RESULTS));
@@ -158,7 +156,7 @@ public class PointtransferQueryService {
 
                 user.put(Common.MONEY, (int) Math.floor(user.optInt(UserExt.USER_POINT) / moneyUnit));
 
-                avatarQueryService.fillUserAvatarURL(avatarViewMode, user);
+                avatarQueryService.fillUserAvatarURL(user);
 
                 ret.add(user);
             }
@@ -172,19 +170,17 @@ public class PointtransferQueryService {
     /**
      * Gets the top consumption users with the specified fetch size.
      *
-     * @param avatarViewMode the specified avatar view mode
-     * @param fetchSize      the specified fetch size
+     * @param fetchSize the specified fetch size
      * @return users, returns an empty list if not found
      */
-    public List<JSONObject> getTopConsumptionUsers(final int avatarViewMode, final int fetchSize) {
+    public List<JSONObject> getTopConsumptionUsers(final int fetchSize) {
         final List<JSONObject> ret = new ArrayList<>();
 
-        final Query query = new Query().addSort(UserExt.USER_USED_POINT, SortDirection.DESCENDING).setCurrentPageNum(1)
-                .setPageSize(fetchSize).
-                        setFilter(new PropertyFilter(UserExt.USER_JOIN_USED_POINT_RANK,
-                                FilterOperator.EQUAL, UserExt.USER_JOIN_USED_POINT_RANK_C_JOIN));
+        final Query query = new Query().addSort(UserExt.USER_USED_POINT, SortDirection.DESCENDING).
+                setPage(1, fetchSize).
+                setFilter(new PropertyFilter(UserExt.USER_JOIN_USED_POINT_RANK, FilterOperator.EQUAL, UserExt.USER_JOIN_XXX_C_JOIN));
 
-        final int moneyUnit = Symphonys.getInt("pointExchangeUnit");
+        final int moneyUnit = Symphonys.POINT_EXCHANGE_UNIT;
         try {
             final JSONObject result = userRepository.get(query);
             final List<JSONObject> users = CollectionUtils.jsonArrayToList(result.optJSONArray(Keys.RESULTS));
@@ -198,7 +194,7 @@ public class PointtransferQueryService {
 
                 user.put(Common.MONEY, (int) Math.floor(user.optInt(UserExt.USER_USED_POINT) / moneyUnit));
 
-                avatarQueryService.fillUserAvatarURL(avatarViewMode, user);
+                avatarQueryService.fillUserAvatarURL(user);
 
                 ret.add(user);
             }
@@ -223,11 +219,10 @@ public class PointtransferQueryService {
      *     }, ....]
      * }
      * </pre>
-     * @throws ServiceException service exception
      */
-    public JSONObject getUserPoints(final String userId, final int currentPageNum, final int pageSize) throws ServiceException {
-        final Query query = new Query().addSort(Keys.OBJECT_ID, SortDirection.DESCENDING)
-                .setCurrentPageNum(currentPageNum).setPageSize(pageSize);
+    public JSONObject getUserPoints(final String userId, final int currentPageNum, final int pageSize) {
+        final Query query = new Query().addSort(Keys.OBJECT_ID, SortDirection.DESCENDING).
+                setPage(currentPageNum, pageSize);
         final List<Filter> filters = new ArrayList<>();
         filters.add(new PropertyFilter(Pointtransfer.FROM_ID, FilterOperator.EQUAL, userId));
         filters.add(new PropertyFilter(Pointtransfer.TO_ID, FilterOperator.EQUAL, userId));
@@ -249,7 +244,8 @@ public class PointtransferQueryService {
                         || ("5".equals(typeStr) && userId.equals(fromId))
                         || ("9".equals(typeStr) && userId.equals(toId))
                         || ("14".equals(typeStr) && userId.equals(toId))
-                        || ("22".equals(typeStr) && userId.equals(toId))) {
+                        || ("22".equals(typeStr) && userId.equals(toId))
+                        || ("34".equals(typeStr) && userId.equals(toId))) {
                     typeStr += "In";
                 }
 
@@ -286,7 +282,7 @@ public class PointtransferQueryService {
 
                         final String addArticleLink = "<a href=\""
                                 + addArticle.optString(Article.ARTICLE_PERMALINK) + "\">"
-                                + addArticle.optString(Article.ARTICLE_TITLE) + "</a>";
+                                + Escapes.escapeHTML(addArticle.optString(Article.ARTICLE_TITLE)) + "</a>";
                         desTemplate = desTemplate.replace("{article}", addArticleLink);
 
                         break;
@@ -300,7 +296,7 @@ public class PointtransferQueryService {
 
                         final String updateArticleLink = "<a href=\""
                                 + updateArticle.optString(Article.ARTICLE_PERMALINK) + "\">"
-                                + updateArticle.optString(Article.ARTICLE_TITLE) + "</a>";
+                                + Escapes.escapeHTML(updateArticle.optString(Article.ARTICLE_TITLE)) + "</a>";
                         desTemplate = desTemplate.replace("{article}", updateArticleLink);
 
                         break;
@@ -318,13 +314,12 @@ public class PointtransferQueryService {
 
                         final String commentArticleLink = "<a href=\""
                                 + commentArticle.optString(Article.ARTICLE_PERMALINK) + "\">"
-                                + commentArticle.optString(Article.ARTICLE_TITLE) + "</a>";
+                                + Escapes.escapeHTML(commentArticle.optString(Article.ARTICLE_TITLE)) + "</a>";
                         desTemplate = desTemplate.replace("{article}", commentArticleLink);
 
                         if ("3In".equals(typeStr)) {
                             final JSONObject commenter = userRepository.get(fromId);
-                            final String commenterLink = "<a href=\"/member/" + commenter.optString(User.USER_NAME) + "\">"
-                                    + commenter.optString(User.USER_NAME) + "</a>";
+                            final String commenterLink = UserExt.getUserLink(commenter);
 
                             desTemplate = desTemplate.replace("{user}", commenterLink);
                         }
@@ -344,7 +339,7 @@ public class PointtransferQueryService {
 
                         final String commentArticleLink32 = "<a href=\""
                                 + commentArticle32.optString(Article.ARTICLE_PERMALINK) + "\">"
-                                + commentArticle32.optString(Article.ARTICLE_TITLE) + "</a>";
+                                + Escapes.escapeHTML(commentArticle32.optString(Article.ARTICLE_TITLE)) + "</a>";
                         desTemplate = desTemplate.replace("{article}", commentArticleLink32);
 
                         break;
@@ -358,7 +353,7 @@ public class PointtransferQueryService {
 
                         final String addArticleRewordLink = "<a href=\""
                                 + addArticleReword.optString(Article.ARTICLE_PERMALINK) + "\">"
-                                + addArticleReword.optString(Article.ARTICLE_TITLE) + "</a>";
+                                + Escapes.escapeHTML(addArticleReword.optString(Article.ARTICLE_TITLE)) + "</a>";
                         desTemplate = desTemplate.replace("{article}", addArticleRewordLink);
 
                         break;
@@ -371,8 +366,7 @@ public class PointtransferQueryService {
                         final String rewardArticleId = reward.optString(Reward.DATA_ID);
 
                         final JSONObject sender = userRepository.get(senderId);
-                        final String senderLink = "<a href=\"/member/" + sender.optString(User.USER_NAME) + "\">"
-                                + sender.optString(User.USER_NAME) + "</a>";
+                        final String senderLink = UserExt.getUserLink(sender);
                         desTemplate = desTemplate.replace("{user}", senderLink);
 
                         final JSONObject articleReward = articleRepository.get(rewardArticleId);
@@ -384,7 +378,7 @@ public class PointtransferQueryService {
 
                         final String articleRewardLink = "<a href=\""
                                 + articleReward.optString(Article.ARTICLE_PERMALINK) + "\">"
-                                + articleReward.optString(Article.ARTICLE_TITLE) + "</a>";
+                                + Escapes.escapeHTML(articleReward.optString(Article.ARTICLE_TITLE)) + "</a>";
                         desTemplate = desTemplate.replace("{article}", articleRewardLink);
 
                         break;
@@ -396,25 +390,19 @@ public class PointtransferQueryService {
                         } else {
                             user14 = userRepository.get(toId);
                         }
-                        final String commentId14 = reward14.optString(Reward.DATA_ID);
-                        final JSONObject comment14 = commentRepository.get(commentId14);
-                        if (null == comment14) {
+                        final String userLink14 = UserExt.getUserLink(user14);
+                        desTemplate = desTemplate.replace("{user}", userLink14);
+                        final String articleId14 = reward14.optString(Reward.DATA_ID);
+                        final JSONObject article14 = articleRepository.get(articleId14);
+                        if (null == article14) {
                             desTemplate = langPropsService.get("removedLabel");
 
                             break;
                         }
-
-                        final String articleId14 = comment14.optString(Comment.COMMENT_ON_ARTICLE_ID);
-
-                        final String userLink14 = "<a href=\"/member/" + user14.optString(User.USER_NAME) + "\">"
-                                + user14.optString(User.USER_NAME) + "</a>";
-                        desTemplate = desTemplate.replace("{user}", userLink14);
-
-                        final JSONObject article14 = articleRepository.get(articleId14);
-                        final String articleLink = "<a href=\""
+                        final String articleLink14 = "<a href=\""
                                 + article14.optString(Article.ARTICLE_PERMALINK) + "\">"
-                                + article14.optString(Article.ARTICLE_TITLE) + "</a>";
-                        desTemplate = desTemplate.replace("{article}", articleLink);
+                                + Escapes.escapeHTML(article14.optString(Article.ARTICLE_TITLE)) + "</a>";
+                        desTemplate = desTemplate.replace("{article}", articleLink14);
 
                         break;
                     case Pointtransfer.TRANSFER_TYPE_C_ARTICLE_THANK:
@@ -433,34 +421,30 @@ public class PointtransferQueryService {
                             break;
                         }
 
-                        final String userLink22 = "<a href=\"/member/" + user22.optString(User.USER_NAME) + "\">"
-                                + user22.optString(User.USER_NAME) + "</a>";
+                        final String userLink22 = UserExt.getUserLink(user22);
                         desTemplate = desTemplate.replace("{user}", userLink22);
 
                         final String articleLink22 = "<a href=\""
                                 + article22.optString(Article.ARTICLE_PERMALINK) + "\">"
-                                + article22.optString(Article.ARTICLE_TITLE) + "</a>";
+                                + Escapes.escapeHTML(article22.optString(Article.ARTICLE_TITLE)) + "</a>";
                         desTemplate = desTemplate.replace("{article}", articleLink22);
 
                         break;
                     case Pointtransfer.TRANSFER_TYPE_C_INVITE_REGISTER:
                         final JSONObject newUser = userRepository.get(dataId);
-                        final String newUserLink = "<a href=\"/member/" + newUser.optString(User.USER_NAME) + "\">"
-                                + newUser.optString(User.USER_NAME) + "</a>";
+                        final String newUserLink = UserExt.getUserLink(newUser);
                         desTemplate = desTemplate.replace("{user}", newUserLink);
 
                         break;
                     case Pointtransfer.TRANSFER_TYPE_C_INVITED_REGISTER:
                         final JSONObject referralUser = userRepository.get(dataId);
-                        final String referralUserLink = "<a href=\"/member/" + referralUser.optString(User.USER_NAME) + "\">"
-                                + referralUser.optString(User.USER_NAME) + "</a>";
+                        final String referralUserLink = UserExt.getUserLink(referralUser);
                         desTemplate = desTemplate.replace("{user}", referralUserLink);
 
                         break;
                     case Pointtransfer.TRANSFER_TYPE_C_INVITECODE_USED:
                         final JSONObject newUser1 = userRepository.get(dataId);
-                        final String newUserLink1 = "<a href=\"/member/" + newUser1.optString(User.USER_NAME) + "\">"
-                                + newUser1.optString(User.USER_NAME) + "</a>";
+                        final String newUserLink1 = UserExt.getUserLink(newUser1);
                         desTemplate = desTemplate.replace("{user}", newUserLink1);
 
                         break;
@@ -474,6 +458,7 @@ public class PointtransferQueryService {
                     case Pointtransfer.TRANSFER_TYPE_C_ACTIVITY_EATINGSNAKE_COLLECT:
                     case Pointtransfer.TRANSFER_TYPE_C_ACTIVITY_GOBANG:
                     case Pointtransfer.TRANSFER_TYPE_C_ACTIVITY_GOBANG_COLLECT:
+                    case Pointtransfer.TRANSFER_TYPE_C_REPORT_HANDLED:
                         break;
                     case Pointtransfer.TRANSFER_TYPE_C_AT_PARTICIPANTS:
                         final JSONObject comment20 = commentRepository.get(dataId);
@@ -493,7 +478,7 @@ public class PointtransferQueryService {
 
                         final String ArticleLink20 = "<a href=\""
                                 + atParticipantsArticle.optString(Article.ARTICLE_PERMALINK) + "\">"
-                                + atParticipantsArticle.optString(Article.ARTICLE_TITLE) + "</a>";
+                                + Escapes.escapeHTML(atParticipantsArticle.optString(Article.ARTICLE_TITLE)) + "</a>";
                         desTemplate = desTemplate.replace("{article}", ArticleLink20);
 
                         break;
@@ -507,7 +492,7 @@ public class PointtransferQueryService {
 
                         final String stickArticleLink = "<a href=\""
                                 + stickArticle.optString(Article.ARTICLE_PERMALINK) + "\">"
-                                + stickArticle.optString(Article.ARTICLE_TITLE) + "</a>";
+                                + Escapes.escapeHTML(stickArticle.optString(Article.ARTICLE_TITLE)) + "</a>";
                         desTemplate = desTemplate.replace("{article}", stickArticleLink);
 
                         break;
@@ -519,14 +504,19 @@ public class PointtransferQueryService {
                             user9 = userRepository.get(toId);
                         }
 
-                        final String userLink = "<a href=\"/member/" + user9.optString(User.USER_NAME) + "\">"
-                                + user9.optString(User.USER_NAME) + "</a>";
+                        final String userLink = UserExt.getUserLink(user9);
                         desTemplate = desTemplate.replace("{user}", userLink);
+                        final String memo = record.optString(Pointtransfer.MEMO);
+                        if (StringUtils.isNotBlank(memo)) {
+                            desTemplate = desTemplate.replace("{memo}", memo);
+                        } else {
+                            desTemplate = desTemplate.replace("{memo}", langPropsService.get("noMemoLabel"));
+                        }
 
                         break;
                     case Pointtransfer.TRANSFER_TYPE_C_ACTIVITY_CHECKIN_STREAK:
-                        desTemplate = desTemplate.replace("{point}",
-                                String.valueOf(Pointtransfer.TRANSFER_SUM_C_ACTIVITY_CHECKINT_STREAK));
+                        desTemplate = desTemplate.replace("{point}", record.optString(Pointtransfer.SUM));
+
                         break;
                     case Pointtransfer.TRANSFER_TYPE_C_CHARGE:
                         final String yuan = dataId.split("-")[0];
@@ -553,7 +543,7 @@ public class PointtransferQueryService {
 
                         final String addArticleBroadcastLink = "<a href=\""
                                 + addArticleBroadcast.optString(Article.ARTICLE_PERMALINK) + "\">"
-                                + addArticleBroadcast.optString(Article.ARTICLE_TITLE) + "</a>";
+                                + Escapes.escapeHTML(addArticleBroadcast.optString(Article.ARTICLE_TITLE)) + "</a>";
                         desTemplate = desTemplate.replace("{article}", addArticleBroadcastLink);
 
                         break;
@@ -567,8 +557,37 @@ public class PointtransferQueryService {
 
                         final String perfectArticleLink = "<a href=\""
                                 + perfectArticle.optString(Article.ARTICLE_PERMALINK) + "\">"
-                                + perfectArticle.optString(Article.ARTICLE_TITLE) + "</a>";
+                                + Escapes.escapeHTML(perfectArticle.optString(Article.ARTICLE_TITLE)) + "</a>";
                         desTemplate = desTemplate.replace("{article}", perfectArticleLink);
+
+                        break;
+                    case Pointtransfer.TRANSFER_TYPE_C_QNA_OFFER:
+                        final JSONObject reward34 = rewardRepository.get(dataId);
+                        JSONObject user34;
+                        if ("34In".equals(typeStr)) {
+                            user34 = userRepository.get(fromId);
+                        } else {
+                            user34 = userRepository.get(toId);
+                        }
+                        final String userLink34 = UserExt.getUserLink(user34);
+                        desTemplate = desTemplate.replace("{user}", userLink34);
+                        final String articleId34 = reward34.optString(Reward.DATA_ID);
+                        final JSONObject article34 = articleRepository.get(articleId34);
+                        if (null == article34) {
+                            desTemplate = langPropsService.get("removedLabel");
+
+                            break;
+                        }
+                        final String articleLink34 = "<a href=\""
+                                + article34.optString(Article.ARTICLE_PERMALINK) + "\">"
+                                + Escapes.escapeHTML(article34.optString(Article.ARTICLE_TITLE)) + "</a>";
+                        desTemplate = desTemplate.replace("{article}", articleLink34);
+
+                        break;
+                    case Pointtransfer.TRANSFER_TYPE_C_CHANGE_USERNAME:
+                        final String oldName = dataId.split("-")[0];
+                        final String newName = dataId.split("-")[1];
+                        desTemplate = desTemplate.replace("{oldName}", oldName).replace("{newName}", newName);
 
                         break;
                     default:
@@ -587,7 +606,8 @@ public class PointtransferQueryService {
             return ret;
         } catch (final RepositoryException e) {
             LOGGER.log(Level.ERROR, "Gets user points failed", e);
-            throw new ServiceException(e);
+
+            return null;
         }
     }
 }

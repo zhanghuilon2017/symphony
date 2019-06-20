@@ -1,28 +1,37 @@
+<#--
+
+    Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+    Copyright (C) 2012-present, b3log.org
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
 <li id="${comment.oId}"
-    class="<#if comment.commentStatus == 1>cmt-shield</#if><#if comment.commentNice> cmt-perfect</#if><#if comment.commentReplyCnt != 0> cmt-selected</#if>">
+    class="<#if comment.commentStatus == 1>cmt-shield</#if><#if comment.commentNice || comment.commentQnAOffered == 1> cmt-perfect</#if><#if comment.commentReplyCnt != 0> cmt-selected</#if>">
     <div class="fn-flex">
-        <#if !comment.fromClient>
-            <div>
-                <#if comment.commentAnonymous == 0>
-                    <a rel="nofollow" href="${servePath}/member/${comment.commentAuthorName}"></#if>
-                <div class="avatar tooltipped tooltipped-se"
-                     aria-label="${comment.commentAuthorName}" style="background-image:url('${comment.commentAuthorThumbnailURL}')"></div>
-                <#if comment.commentAnonymous == 0></a></#if>
-            </div>
-            <#else>
-                <div class="avatar tooltipped tooltipped-se"
-                     aria-label="${comment.commentAuthorName}" style="background-image:url('${comment.commentAuthorThumbnailURL}')"></div>
-        </#if>
+        <div>
+            <#if comment.commentAnonymous == 0>
+                <a rel="nofollow" href="${servePath}/member/${comment.commentAuthorName}"></#if>
+            <div class="avatar tooltipped tooltipped-se"
+                 aria-label="${comment.commentAuthorName}" style="background-image:url('${comment.commentAuthorThumbnailURL}')"></div>
+            <#if comment.commentAnonymous == 0></a></#if>
+        </div>
         <div class="fn-flex-1">
             <div class="comment-get-comment list"></div>
             <div class="fn-clear comment-info">
                 <span class="fn-left ft-smaller">
-                    <#if !comment.fromClient>
                     <#if comment.commentAnonymous == 0><a rel="nofollow" href="${servePath}/member/${comment.commentAuthorName}" class="ft-gray"></#if><span class="ft-gray">${comment.commentAuthorName}</span><#if comment.commentAnonymous == 0></a></#if>
-                    <#else><span class="ft-gray">${comment.commentAuthorName}</span>
-                    <span class="ft-fade"> • </span>
-                    <a rel="nofollow" class="ft-green" href="https://hacpai.com/article/1457158841475">API</a>
-                    </#if>
                     <span class="ft-fade">• ${comment.timeAgo}</span>
                     <#if 0 == comment.commenter.userUAStatus><span class="cmt-via ft-fade hover-show fn-hidden" data-ua="${comment.commentUA}"></span></#if>
                 </span>
@@ -54,7 +63,7 @@
                     </#if>
                 </span>
             </div>
-            <div class="content-reset comment">
+            <div class="vditor-reset comment">
                 ${comment.commentContent}
             </div>
             <div class="comment-action">
@@ -86,6 +95,15 @@
                         <#else>
                             onclick="Article.permissionTip(Label.noPermissionLabel)"
                     </#if>><svg class="icon-thumbs-down"><use xlink:href="#thumbs-down"></use></svg> ${comment.commentBadCnt}</span> &nbsp;
+
+                   <#if isLoggedIn && !article.offered && article.articleAuthorId == currentUser.oId && comment.commentAuthorName != currentUser.userName && article.articleQnAOfferPoint != 0>
+                    <span aria-label="${adoptLabel}" class="icon-reply-btn tooltipped tooltipped-n"
+                          onclick="Comment.accept('${adoptTipLabel?replace('{point}', article.articleQnAOfferPoint)}', '${comment.oId}', this)"
+                    ><svg><use xlink:href="#icon-accept"></use></svg></span> &nbsp;
+                   </#if>
+                    <span aria-label="${reportLabel}" class="tooltipped tooltipped-n"
+                          onclick="$('#reportDialog').data('type', 1).data('id', '${comment.oId}').dialog('open')"
+                    ><svg><use xlink:href="#icon-report"></use></svg></span> &nbsp;
                     <#if isLoggedIn && comment.commentAuthorName != currentUser.userName && permissions["commonAddComment"].permissionGrant>
                         <span aria-label="${replyLabel}" class="icon-reply-btn tooltipped tooltipped-n"
                               onclick="Comment.reply('${comment.commentAuthorName}', '${comment.oId}')">

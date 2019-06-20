@@ -1,31 +1,31 @@
 /*
- * Symphony - A modern community (forum/SNS/blog) platform written in Java.
- * Copyright (C) 2012-2017,  b3log.org & hacpai.com
+ * Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+ * Copyright (C) 2012-present, b3log.org
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package org.b3log.symphony.service;
 
 import org.b3log.latke.Keys;
-import org.b3log.latke.ioc.inject.Inject;
+import org.b3log.latke.Latkes;
+import org.b3log.latke.ioc.Inject;
 import org.b3log.latke.logging.Level;
 import org.b3log.latke.logging.Logger;
 import org.b3log.latke.model.Pagination;
 import org.b3log.latke.model.User;
 import org.b3log.latke.repository.*;
 import org.b3log.latke.service.LangPropsService;
-import org.b3log.latke.service.ServiceException;
 import org.b3log.latke.service.annotation.Service;
 import org.b3log.latke.util.Stopwatchs;
 import org.b3log.symphony.model.*;
@@ -43,7 +43,7 @@ import java.util.List;
  * Notification query service.
  *
  * @author <a href="http://88250.b3log.org">Liang Ding</a>
- * @version 1.13.5.14, Aug 21, 2017
+ * @version 1.14.0.3, Nov 13, 2018
  * @since 0.2.5
  */
 @Service
@@ -121,6 +121,28 @@ public class NotificationQueryService {
     private RoleQueryService roleQueryService;
 
     /**
+     * Tag query service.
+     */
+    @Inject
+    private TagQueryService tagQueryService;
+
+    /**
+     * Gets a notification by the specified id.
+     *
+     * @param notificationId the specified id
+     * @return notification, returns {@code null} if not found
+     */
+    public JSONObject getNotification(final String notificationId) {
+        try {
+            return notificationRepository.get(notificationId);
+        } catch (final Exception e) {
+            LOGGER.log(Level.ERROR, "Gets a notification [id=" + notificationId + "] failed", e);
+
+            return null;
+        }
+    }
+
+    /**
      * Gets the count of unread 'following' notifications of a user specified with the given user id.
      *
      * @param userId the given user id
@@ -130,19 +152,12 @@ public class NotificationQueryService {
         final List<Filter> filters = new ArrayList<>();
         filters.add(new PropertyFilter(Notification.NOTIFICATION_USER_ID, FilterOperator.EQUAL, userId));
         filters.add(new PropertyFilter(Notification.NOTIFICATION_HAS_READ, FilterOperator.EQUAL, false));
-
         final List<Filter> subFilters = new ArrayList<>();
-        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL,
-                Notification.DATA_TYPE_C_FOLLOWING_ARTICLE_UPDATE));
-        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL,
-                Notification.DATA_TYPE_C_FOLLOWING_ARTICLE_COMMENT));
-        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL,
-                Notification.DATA_TYPE_C_FOLLOWING_USER));
-
+        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_FOLLOWING_ARTICLE_UPDATE));
+        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_FOLLOWING_ARTICLE_COMMENT));
+        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_FOLLOWING_USER));
         filters.add(new CompositeFilter(CompositeFilterOperator.OR, subFilters));
-
         final Query query = new Query().setFilter(new CompositeFilter(CompositeFilterOperator.AND, filters));
-
         try {
             final JSONObject result = notificationRepository.get(query);
 
@@ -164,19 +179,12 @@ public class NotificationQueryService {
         final List<Filter> filters = new ArrayList<>();
         filters.add(new PropertyFilter(Notification.NOTIFICATION_USER_ID, FilterOperator.EQUAL, userId));
         filters.add(new PropertyFilter(Notification.NOTIFICATION_HAS_READ, FilterOperator.EQUAL, false));
-
         final List<Filter> subFilters = new ArrayList<>();
-        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL,
-                Notification.DATA_TYPE_C_SYS_ANNOUNCE_ARTICLE));
-        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL,
-                Notification.DATA_TYPE_C_SYS_ANNOUNCE_NEW_USER));
-        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL,
-                Notification.DATA_TYPE_C_SYS_ANNOUNCE_ROLE_CHANGED));
-
+        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_SYS_ANNOUNCE_ARTICLE));
+        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_SYS_ANNOUNCE_NEW_USER));
+        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_SYS_ANNOUNCE_ROLE_CHANGED));
         filters.add(new CompositeFilter(CompositeFilterOperator.OR, subFilters));
-
         final Query query = new Query().setFilter(new CompositeFilter(CompositeFilterOperator.AND, filters));
-
         try {
             final JSONObject result = notificationRepository.get(query);
 
@@ -191,7 +199,6 @@ public class NotificationQueryService {
     /**
      * Gets 'sys announce' type notifications with the specified user id, current page number and page size.
      *
-     * @param avatarViewMode the specified avatar view mode
      * @param userId         the specified user id
      * @param currentPageNum the specified page number
      * @param pageSize       the specified page size
@@ -205,45 +212,32 @@ public class NotificationQueryService {
      *     }, ....]
      * }
      * </pre>
-     * @throws ServiceException service exception
      */
-    public JSONObject getSysAnnounceNotifications(final int avatarViewMode,
-                                                  final String userId, final int currentPageNum, final int pageSize) throws ServiceException {
+    public JSONObject getSysAnnounceNotifications(final String userId, final int currentPageNum, final int pageSize) {
         final JSONObject ret = new JSONObject();
         final List<JSONObject> rslts = new ArrayList<>();
-
         ret.put(Keys.RESULTS, (Object) rslts);
 
         final List<Filter> filters = new ArrayList<>();
         filters.add(new PropertyFilter(Notification.NOTIFICATION_USER_ID, FilterOperator.EQUAL, userId));
-
         final List<Filter> subFilters = new ArrayList<>();
-        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL,
-                Notification.DATA_TYPE_C_SYS_ANNOUNCE_ARTICLE));
-        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL,
-                Notification.DATA_TYPE_C_SYS_ANNOUNCE_NEW_USER));
-        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL,
-                Notification.DATA_TYPE_C_SYS_ANNOUNCE_ROLE_CHANGED));
-
+        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_SYS_ANNOUNCE_ARTICLE));
+        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_SYS_ANNOUNCE_NEW_USER));
+        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_SYS_ANNOUNCE_ROLE_CHANGED));
         filters.add(new CompositeFilter(CompositeFilterOperator.OR, subFilters));
-
-        final Query query = new Query().setCurrentPageNum(currentPageNum).setPageSize(pageSize).
+        final Query query = new Query().setPage(currentPageNum, pageSize).
                 setFilter(new CompositeFilter(CompositeFilterOperator.AND, filters)).
                 addSort(Notification.NOTIFICATION_HAS_READ, SortDirection.ASCENDING).
                 addSort(Keys.OBJECT_ID, SortDirection.DESCENDING);
-
         try {
             final JSONObject queryResult = notificationRepository.get(query);
             final JSONArray results = queryResult.optJSONArray(Keys.RESULTS);
-
-            ret.put(Pagination.PAGINATION_RECORD_COUNT,
-                    queryResult.optJSONObject(Pagination.PAGINATION).optInt(Pagination.PAGINATION_RECORD_COUNT));
-
+            ret.put(Pagination.PAGINATION_RECORD_COUNT, queryResult.optJSONObject(Pagination.PAGINATION).optInt(Pagination.PAGINATION_RECORD_COUNT));
             for (int i = 0; i < results.length(); i++) {
                 final JSONObject notification = results.optJSONObject(i);
                 final String dataId = notification.optString(Notification.NOTIFICATION_DATA_ID);
                 final int dataType = notification.optInt(Notification.NOTIFICATION_DATA_TYPE);
-                String desTemplate = "";
+                String desTemplate;
 
                 switch (dataType) {
                     case Notification.DATA_TYPE_C_SYS_ANNOUNCE_NEW_USER:
@@ -261,7 +255,7 @@ public class NotificationQueryService {
                         }
 
                         final String articleLink15 = "<a href=\""
-                                + article15.optString(Article.ARTICLE_PERMALINK) + "\">"
+                                + Latkes.getServePath() + article15.optString(Article.ARTICLE_PERMALINK) + "\">"
                                 + article15.optString(Article.ARTICLE_TITLE) + "</a>";
                         desTemplate = desTemplate.replace("{article}", articleLink15);
 
@@ -292,7 +286,7 @@ public class NotificationQueryService {
         } catch (final RepositoryException e) {
             LOGGER.log(Level.ERROR, "Gets [sys_announce] notifications failed", e);
 
-            throw new ServiceException(e);
+            return null;
         }
     }
 
@@ -308,9 +302,7 @@ public class NotificationQueryService {
             final Query query = new Query();
             query.setFilter(CompositeFilterOperator.and(
                     new PropertyFilter(Notification.NOTIFICATION_USER_ID, FilterOperator.EQUAL, userId),
-                    new PropertyFilter(Notification.NOTIFICATION_HAS_READ, FilterOperator.EQUAL, false)
-            ));
-
+                    new PropertyFilter(Notification.NOTIFICATION_HAS_READ, FilterOperator.EQUAL, false)));
             try {
                 return (int) notificationRepository.count(query);
             } catch (final RepositoryException e) {
@@ -332,13 +324,11 @@ public class NotificationQueryService {
      */
     public int getUnreadNotificationCountByType(final String userId, final int notificationDataType) {
         final List<Filter> filters = new ArrayList<>();
-
         filters.add(new PropertyFilter(Notification.NOTIFICATION_USER_ID, FilterOperator.EQUAL, userId));
         filters.add(new PropertyFilter(Notification.NOTIFICATION_HAS_READ, FilterOperator.EQUAL, false));
         filters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, notificationDataType));
-
         final Query query = new Query();
-        query.setFilter(new CompositeFilter(CompositeFilterOperator.AND, filters)).addProjection(Keys.OBJECT_ID, String.class);
+        query.setFilter(new CompositeFilter(CompositeFilterOperator.AND, filters)).select(Keys.OBJECT_ID);
 
         try {
             final JSONObject result = notificationRepository.get(query);
@@ -361,33 +351,21 @@ public class NotificationQueryService {
         final List<Filter> filters = new ArrayList<>();
         filters.add(new PropertyFilter(Notification.NOTIFICATION_USER_ID, FilterOperator.EQUAL, userId));
         filters.add(new PropertyFilter(Notification.NOTIFICATION_HAS_READ, FilterOperator.EQUAL, false));
-
         final List<Filter> subFilters = new ArrayList<>();
-        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL,
-                Notification.DATA_TYPE_C_POINT_ARTICLE_REWARD));
-        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL,
-                Notification.DATA_TYPE_C_POINT_ARTICLE_THANK));
-        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL,
-                Notification.DATA_TYPE_C_POINT_CHARGE));
-        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL,
-                Notification.DATA_TYPE_C_POINT_EXCHANGE));
-        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL,
-                Notification.DATA_TYPE_C_ABUSE_POINT_DEDUCT));
-        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL,
-                Notification.DATA_TYPE_C_POINT_COMMENT_THANK));
-        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL,
-                Notification.DATA_TYPE_C_POINT_TRANSFER));
-        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL,
-                Notification.DATA_TYPE_C_INVITECODE_USED));
-        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL,
-                Notification.DATA_TYPE_C_INVITATION_LINK_USED));
-        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL,
-                Notification.DATA_TYPE_C_POINT_PERFECT_ARTICLE));
-
+        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_POINT_ARTICLE_REWARD));
+        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_POINT_ARTICLE_THANK));
+        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_POINT_CHARGE));
+        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_POINT_EXCHANGE));
+        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_ABUSE_POINT_DEDUCT));
+        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_POINT_COMMENT_THANK));
+        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_POINT_COMMENT_ACCEPT));
+        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_POINT_TRANSFER));
+        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_INVITECODE_USED));
+        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_INVITATION_LINK_USED));
+        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_POINT_PERFECT_ARTICLE));
+        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_POINT_REPORT_HANDLED));
         filters.add(new CompositeFilter(CompositeFilterOperator.OR, subFilters));
-
         final Query query = new Query().setFilter(new CompositeFilter(CompositeFilterOperator.AND, filters));
-
         try {
             final JSONObject result = notificationRepository.get(query);
 
@@ -415,54 +393,36 @@ public class NotificationQueryService {
      *     }, ....]
      * }
      * </pre>
-     * @throws ServiceException service exception
      */
-    public JSONObject getPointNotifications(final String userId, final int currentPageNum, final int pageSize)
-            throws ServiceException {
+    public JSONObject getPointNotifications(final String userId, final int currentPageNum, final int pageSize) {
         final JSONObject ret = new JSONObject();
         final List<JSONObject> rslts = new ArrayList<>();
-
         ret.put(Keys.RESULTS, (Object) rslts);
 
         final List<Filter> filters = new ArrayList<>();
         filters.add(new PropertyFilter(Notification.NOTIFICATION_USER_ID, FilterOperator.EQUAL, userId));
-
         final List<Filter> subFilters = new ArrayList<>();
-        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL,
-                Notification.DATA_TYPE_C_POINT_ARTICLE_REWARD));
-        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL,
-                Notification.DATA_TYPE_C_POINT_ARTICLE_THANK));
-        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL,
-                Notification.DATA_TYPE_C_POINT_CHARGE));
-        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL,
-                Notification.DATA_TYPE_C_POINT_EXCHANGE));
-        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL,
-                Notification.DATA_TYPE_C_ABUSE_POINT_DEDUCT));
-        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL,
-                Notification.DATA_TYPE_C_POINT_COMMENT_THANK));
-        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL,
-                Notification.DATA_TYPE_C_POINT_TRANSFER));
-        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL,
-                Notification.DATA_TYPE_C_INVITECODE_USED));
-        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL,
-                Notification.DATA_TYPE_C_INVITATION_LINK_USED));
-        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL,
-                Notification.DATA_TYPE_C_POINT_PERFECT_ARTICLE));
-
+        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_POINT_ARTICLE_REWARD));
+        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_POINT_ARTICLE_THANK));
+        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_POINT_CHARGE));
+        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_POINT_EXCHANGE));
+        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_ABUSE_POINT_DEDUCT));
+        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_POINT_COMMENT_THANK));
+        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_POINT_COMMENT_ACCEPT));
+        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_POINT_TRANSFER));
+        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_INVITECODE_USED));
+        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_INVITATION_LINK_USED));
+        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_POINT_PERFECT_ARTICLE));
+        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_POINT_REPORT_HANDLED));
         filters.add(new CompositeFilter(CompositeFilterOperator.OR, subFilters));
-
-        final Query query = new Query().setCurrentPageNum(currentPageNum).setPageSize(pageSize).
+        final Query query = new Query().setPage(currentPageNum, pageSize).
                 setFilter(new CompositeFilter(CompositeFilterOperator.AND, filters)).
                 addSort(Notification.NOTIFICATION_HAS_READ, SortDirection.ASCENDING).
                 addSort(Keys.OBJECT_ID, SortDirection.DESCENDING);
-
         try {
             final JSONObject queryResult = notificationRepository.get(query);
             final JSONArray results = queryResult.optJSONArray(Keys.RESULTS);
-
-            ret.put(Pagination.PAGINATION_RECORD_COUNT,
-                    queryResult.optJSONObject(Pagination.PAGINATION).optInt(Pagination.PAGINATION_RECORD_COUNT));
-
+            ret.put(Pagination.PAGINATION_RECORD_COUNT, queryResult.optJSONObject(Pagination.PAGINATION).optInt(Pagination.PAGINATION_RECORD_COUNT));
             for (int i = 0; i < results.length(); i++) {
                 final JSONObject notification = results.optJSONObject(i);
                 final String dataId = notification.optString(Notification.NOTIFICATION_DATA_ID);
@@ -484,12 +444,11 @@ public class NotificationQueryService {
                             break;
                         }
 
-                        final String userLink12 = "<a href=\"/member/" + user12.optString(User.USER_NAME) + "\">"
-                                + user12.optString(User.USER_NAME) + "</a>";
+                        final String userLink12 = UserExt.getUserLink(user12);
                         desTemplate = desTemplate.replace("{user}", userLink12);
 
                         final String articleLink12 = "<a href=\""
-                                + article12.optString(Article.ARTICLE_PERMALINK) + "\">"
+                                + Latkes.getServePath() + article12.optString(Article.ARTICLE_PERMALINK) + "\">"
                                 + article12.optString(Article.ARTICLE_TITLE) + "</a>";
                         desTemplate = desTemplate.replace("{article}", articleLink12);
 
@@ -508,12 +467,11 @@ public class NotificationQueryService {
                             break;
                         }
 
-                        final String userLink7 = "<a href=\"/member/" + user7.optString(User.USER_NAME) + "\">"
-                                + user7.optString(User.USER_NAME) + "</a>";
+                        final String userLink7 = UserExt.getUserLink(user7);
                         desTemplate = desTemplate.replace("{user}", userLink7);
 
                         final String articleLink7 = "<a href=\""
-                                + article7.optString(Article.ARTICLE_PERMALINK) + "\">"
+                                + Latkes.getServePath() + article7.optString(Article.ARTICLE_PERMALINK) + "\">"
                                 + article7.optString(Article.ARTICLE_TITLE) + "</a>";
                         desTemplate = desTemplate.replace("{article}", articleLink7);
 
@@ -567,14 +525,36 @@ public class NotificationQueryService {
                             break;
                         }
 
-                        final String userLink8 = "<a href=\"/member/" + user8.optString(User.USER_NAME) + "\">"
-                                + user8.optString(User.USER_NAME) + "</a>";
+                        final String userLink8 = UserExt.getUserLink(user8);
                         desTemplate = desTemplate.replace("{user}", userLink8);
 
                         final String articleLink8 = "<a href=\""
-                                + article8.optString(Article.ARTICLE_PERMALINK) + "\">"
+                                + Latkes.getServePath() + article8.optString(Article.ARTICLE_PERMALINK) + "\">"
                                 + article8.optString(Article.ARTICLE_TITLE) + "</a>";
                         desTemplate = desTemplate.replace("{article}", articleLink8);
+
+                        break;
+                    case Notification.DATA_TYPE_C_POINT_COMMENT_ACCEPT:
+                        desTemplate = langPropsService.get("notificationCmtAcceptLabel");
+
+                        final JSONObject reward33 = rewardRepository.get(dataId);
+                        final String articleId33 = reward33.optString(Reward.DATA_ID);
+                        final JSONObject article33 = articleRepository.get(articleId33);
+                        if (null == article33) {
+                            desTemplate = langPropsService.get("removedLabel");
+
+                            break;
+                        }
+
+                        final String articleAuthorId = article33.optString(Article.ARTICLE_AUTHOR_ID);
+                        final JSONObject user33 = userRepository.get(articleAuthorId);
+                        final String userLink33 = UserExt.getUserLink(user33);
+                        desTemplate = desTemplate.replace("{user}", userLink33);
+
+                        final String articleLink33 = "<a href=\""
+                                + Latkes.getServePath() + article33.optString(Article.ARTICLE_PERMALINK) + "\">"
+                                + article33.optString(Article.ARTICLE_TITLE) + "</a>";
+                        desTemplate = desTemplate.replace("{article}", Emotions.convert(articleLink33));
 
                         break;
                     case Notification.DATA_TYPE_C_POINT_TRANSFER:
@@ -585,8 +565,7 @@ public class NotificationQueryService {
                         final JSONObject user101 = userRepository.get(fromId101);
                         final int sum101 = transfer101.optInt(Pointtransfer.SUM);
 
-                        final String userLink101 = "<a href=\"/member/" + user101.optString(User.USER_NAME) + "\">"
-                                + user101.optString(User.USER_NAME) + "</a>";
+                        final String userLink101 = UserExt.getUserLink(user101);
                         desTemplate = desTemplate.replace("{user}", userLink101);
                         desTemplate = desTemplate.replace("{amount}", String.valueOf(sum101));
 
@@ -595,8 +574,7 @@ public class NotificationQueryService {
                         desTemplate = langPropsService.get("notificationInvitecodeUsedLabel");
 
                         final JSONObject invitedUser = userRepository.get(dataId);
-                        final String invitedUserLink = "<a href=\"/member/" + invitedUser.optString(User.USER_NAME) + "\">"
-                                + invitedUser.optString(User.USER_NAME) + "</a>";
+                        final String invitedUserLink = UserExt.getUserLink(invitedUser);
 
                         desTemplate = desTemplate.replace("{user}", invitedUserLink);
 
@@ -605,8 +583,7 @@ public class NotificationQueryService {
                         desTemplate = langPropsService.get("notificationInvitationLinkUsedLabel");
 
                         final JSONObject invitedUser18 = userRepository.get(dataId);
-                        final String invitedUserLink18 = "<a href=\"/member/" + invitedUser18.optString(User.USER_NAME) + "\">"
-                                + invitedUser18.optString(User.USER_NAME) + "</a>";
+                        final String invitedUserLink18 = UserExt.getUserLink(invitedUser18);
 
                         desTemplate = desTemplate.replace("{user}", invitedUserLink18);
 
@@ -622,9 +599,13 @@ public class NotificationQueryService {
                         }
 
                         final String articleLink22 = "<a href=\""
-                                + article22.optString(Article.ARTICLE_PERMALINK) + "\">"
+                                + Latkes.getServePath() + article22.optString(Article.ARTICLE_PERMALINK) + "\">"
                                 + article22.optString(Article.ARTICLE_TITLE) + "</a>";
                         desTemplate = desTemplate.replace("{article}", articleLink22);
+
+                        break;
+                    case Notification.DATA_TYPE_C_POINT_REPORT_HANDLED:
+                        desTemplate = langPropsService.get("notification36Label");
 
                         break;
                     default:
@@ -641,14 +622,13 @@ public class NotificationQueryService {
         } catch (final RepositoryException e) {
             LOGGER.log(Level.ERROR, "Gets [point] notifications failed", e);
 
-            throw new ServiceException(e);
+            return null;
         }
     }
 
     /**
      * Gets 'commented' type notifications with the specified user id, current page number and page size.
      *
-     * @param avatarViewMode the specified avatar view mode
      * @param userId         the specified user id
      * @param currentPageNum the specified page number
      * @param pageSize       the specified page size
@@ -668,46 +648,34 @@ public class NotificationQueryService {
      *     }, ....]
      * }
      * </pre>
-     * @throws ServiceException service exception
      */
-    public JSONObject getCommentedNotifications(final int avatarViewMode,
-                                                final String userId, final int currentPageNum, final int pageSize) throws ServiceException {
+    public JSONObject getCommentedNotifications(final String userId, final int currentPageNum, final int pageSize) {
         final JSONObject ret = new JSONObject();
         final List<JSONObject> rslts = new ArrayList<>();
-
         ret.put(Keys.RESULTS, (Object) rslts);
 
         final List<Filter> filters = new ArrayList<>();
         filters.add(new PropertyFilter(Notification.NOTIFICATION_USER_ID, FilterOperator.EQUAL, userId));
         filters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_COMMENTED));
-
-        final Query query = new Query().setCurrentPageNum(currentPageNum).setPageSize(pageSize).
+        final Query query = new Query().setPage(currentPageNum, pageSize).
                 setFilter(new CompositeFilter(CompositeFilterOperator.AND, filters)).
                 addSort(Notification.NOTIFICATION_HAS_READ, SortDirection.ASCENDING).
                 addSort(Keys.OBJECT_ID, SortDirection.DESCENDING);
-
         try {
             final JSONObject user = userRepository.get(userId);
             final int cmtViewMode = user.optInt(UserExt.USER_COMMENT_VIEW_MODE);
 
             final JSONObject queryResult = notificationRepository.get(query);
             final JSONArray results = queryResult.optJSONArray(Keys.RESULTS);
-
-            ret.put(Pagination.PAGINATION_RECORD_COUNT,
-                    queryResult.optJSONObject(Pagination.PAGINATION).optInt(Pagination.PAGINATION_RECORD_COUNT));
-
+            ret.put(Pagination.PAGINATION_RECORD_COUNT, queryResult.optJSONObject(Pagination.PAGINATION).optInt(Pagination.PAGINATION_RECORD_COUNT));
             for (int i = 0; i < results.length(); i++) {
                 final JSONObject notification = results.optJSONObject(i);
                 final String commentId = notification.optString(Notification.NOTIFICATION_DATA_ID);
-
-                final JSONObject comment = commentQueryService.getCommentById(avatarViewMode, commentId);
+                final JSONObject comment = commentQueryService.getCommentById(commentId);
 
                 final Query q = new Query().setPageCount(1).
-                        addProjection(Article.ARTICLE_PERFECT, Integer.class).
-                        addProjection(Article.ARTICLE_TITLE, String.class).
-                        addProjection(Article.ARTICLE_TYPE, Integer.class).
-                        setFilter(new PropertyFilter(Keys.OBJECT_ID, FilterOperator.EQUAL,
-                                comment.optString(Comment.COMMENT_ON_ARTICLE_ID)));
+                        select(Article.ARTICLE_PERFECT, Article.ARTICLE_TITLE, Article.ARTICLE_TYPE).
+                        setFilter(new PropertyFilter(Keys.OBJECT_ID, FilterOperator.EQUAL, comment.optString(Comment.COMMENT_ON_ARTICLE_ID)));
                 final JSONArray rlts = articleRepository.get(q).optJSONArray(Keys.RESULTS);
                 final JSONObject article = rlts.optJSONObject(0);
                 final String articleTitle = article.optString(Article.ARTICLE_TITLE);
@@ -718,17 +686,14 @@ public class NotificationQueryService {
                 commentedNotification.put(Keys.OBJECT_ID, notification.optString(Keys.OBJECT_ID));
                 commentedNotification.put(Comment.COMMENT_T_AUTHOR_NAME, comment.optString(Comment.COMMENT_T_AUTHOR_NAME));
                 commentedNotification.put(Comment.COMMENT_CONTENT, comment.optString(Comment.COMMENT_CONTENT));
-                commentedNotification.put(Comment.COMMENT_T_AUTHOR_THUMBNAIL_URL,
-                        comment.optString(Comment.COMMENT_T_AUTHOR_THUMBNAIL_URL));
-                commentedNotification.put(Common.THUMBNAIL_UPDATE_TIME, comment.optJSONObject(Comment.COMMENT_T_COMMENTER).
-                        optLong(UserExt.USER_UPDATE_TIME));
+                commentedNotification.put(Comment.COMMENT_T_AUTHOR_THUMBNAIL_URL, comment.optString(Comment.COMMENT_T_AUTHOR_THUMBNAIL_URL));
                 commentedNotification.put(Comment.COMMENT_T_ARTICLE_TITLE, Emotions.convert(articleTitle));
                 commentedNotification.put(Comment.COMMENT_T_ARTICLE_TYPE, articleType);
                 commentedNotification.put(Comment.COMMENT_CREATE_TIME, comment.opt(Comment.COMMENT_CREATE_TIME));
                 commentedNotification.put(Notification.NOTIFICATION_HAS_READ, notification.optBoolean(Notification.NOTIFICATION_HAS_READ));
                 commentedNotification.put(Comment.COMMENT_T_ARTICLE_PERFECT, articlePerfect);
                 final String articleId = comment.optString(Comment.COMMENT_ON_ARTICLE_ID);
-                final int cmtPage = commentQueryService.getCommentPage(articleId, commentId, cmtViewMode, Symphonys.getInt("articleCommentsPageSize"));
+                final int cmtPage = commentQueryService.getCommentPage(articleId, commentId, cmtViewMode, Symphonys.ARTICLE_COMMENTS_CNT);
                 commentedNotification.put(Comment.COMMENT_SHARP_URL, "/article/" + articleId + "?p=" + cmtPage
                         + "&m=" + cmtViewMode + "#" + commentId);
 
@@ -738,14 +703,14 @@ public class NotificationQueryService {
             return ret;
         } catch (final RepositoryException e) {
             LOGGER.log(Level.ERROR, "Gets [commented] notifications", e);
-            throw new ServiceException(e);
+
+            return null;
         }
     }
 
     /**
      * Gets 'reply' type notifications with the specified user id, current page number and page size.
      *
-     * @param avatarViewMode the specified avatar view mode
      * @param userId         the specified user id
      * @param currentPageNum the specified page number
      * @param pageSize       the specified page size
@@ -765,78 +730,67 @@ public class NotificationQueryService {
      *     }, ....]
      * }
      * </pre>
-     * @throws ServiceException service exception
      */
-    public JSONObject getReplyNotifications(final int avatarViewMode,
-                                            final String userId, final int currentPageNum, final int pageSize) throws ServiceException {
+    public JSONObject getReplyNotifications(final String userId, final int currentPageNum, final int pageSize) {
         final JSONObject ret = new JSONObject();
         final List<JSONObject> rslts = new ArrayList<>();
-
         ret.put(Keys.RESULTS, (Object) rslts);
 
         final List<Filter> filters = new ArrayList<>();
         filters.add(new PropertyFilter(Notification.NOTIFICATION_USER_ID, FilterOperator.EQUAL, userId));
         filters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_REPLY));
-
-        final Query query = new Query().setCurrentPageNum(currentPageNum).setPageSize(pageSize).
+        final Query query = new Query().setPage(currentPageNum, pageSize).
                 setFilter(new CompositeFilter(CompositeFilterOperator.AND, filters)).
                 addSort(Notification.NOTIFICATION_HAS_READ, SortDirection.ASCENDING).
                 addSort(Keys.OBJECT_ID, SortDirection.DESCENDING);
-
         try {
             final JSONObject queryResult = notificationRepository.get(query);
             final JSONArray results = queryResult.optJSONArray(Keys.RESULTS);
-
-            ret.put(Pagination.PAGINATION_RECORD_COUNT,
-                    queryResult.optJSONObject(Pagination.PAGINATION).optInt(Pagination.PAGINATION_RECORD_COUNT));
-
+            ret.put(Pagination.PAGINATION_RECORD_COUNT, queryResult.optJSONObject(Pagination.PAGINATION).optInt(Pagination.PAGINATION_RECORD_COUNT));
             for (int i = 0; i < results.length(); i++) {
                 final JSONObject notification = results.optJSONObject(i);
                 final String commentId = notification.optString(Notification.NOTIFICATION_DATA_ID);
-
-                final JSONObject comment = commentQueryService.getCommentById(avatarViewMode, commentId);
+                final JSONObject comment = commentQueryService.getCommentById(commentId);
 
                 final Query q = new Query().setPageCount(1).
-                        addProjection(Article.ARTICLE_PERFECT, Integer.class).
-                        addProjection(Article.ARTICLE_TITLE, String.class).
-                        addProjection(Article.ARTICLE_TYPE, Integer.class).
-                        setFilter(new PropertyFilter(Keys.OBJECT_ID, FilterOperator.EQUAL,
-                                comment.optString(Comment.COMMENT_ON_ARTICLE_ID)));
+                        select(Article.ARTICLE_PERFECT, Article.ARTICLE_TITLE, Article.ARTICLE_TYPE).
+                        setFilter(new PropertyFilter(Keys.OBJECT_ID, FilterOperator.EQUAL, comment.optString(Comment.COMMENT_ON_ARTICLE_ID)));
                 final JSONArray rlts = articleRepository.get(q).optJSONArray(Keys.RESULTS);
                 final JSONObject article = rlts.optJSONObject(0);
                 final String articleTitle = article.optString(Article.ARTICLE_TITLE);
                 final int articleType = article.optInt(Article.ARTICLE_TYPE);
                 final int articlePerfect = article.optInt(Article.ARTICLE_PERFECT);
 
-                final JSONObject commentedNotification = new JSONObject();
-                commentedNotification.put(Keys.OBJECT_ID, notification.optString(Keys.OBJECT_ID));
-                commentedNotification.put(Comment.COMMENT_T_AUTHOR_NAME, comment.optString(Comment.COMMENT_T_AUTHOR_NAME));
-                commentedNotification.put(Comment.COMMENT_CONTENT, comment.optString(Comment.COMMENT_CONTENT));
-                commentedNotification.put(Comment.COMMENT_T_AUTHOR_THUMBNAIL_URL,
-                        comment.optString(Comment.COMMENT_T_AUTHOR_THUMBNAIL_URL));
-                commentedNotification.put(Common.THUMBNAIL_UPDATE_TIME, comment.optJSONObject(Comment.COMMENT_T_COMMENTER).
-                        optLong(UserExt.USER_UPDATE_TIME));
-                commentedNotification.put(Comment.COMMENT_T_ARTICLE_TITLE, Emotions.convert(articleTitle));
-                commentedNotification.put(Comment.COMMENT_T_ARTICLE_TYPE, articleType);
-                commentedNotification.put(Comment.COMMENT_SHARP_URL, comment.optString(Comment.COMMENT_SHARP_URL));
-                commentedNotification.put(Comment.COMMENT_CREATE_TIME, comment.opt(Comment.COMMENT_CREATE_TIME));
-                commentedNotification.put(Notification.NOTIFICATION_HAS_READ, notification.optBoolean(Notification.NOTIFICATION_HAS_READ));
-                commentedNotification.put(Comment.COMMENT_T_ARTICLE_PERFECT, articlePerfect);
+                final JSONObject replyNotification = new JSONObject();
+                replyNotification.put(Keys.OBJECT_ID, notification.optString(Keys.OBJECT_ID));
+                replyNotification.put(Comment.COMMENT_T_AUTHOR_NAME, comment.optString(Comment.COMMENT_T_AUTHOR_NAME));
+                replyNotification.put(Comment.COMMENT_CONTENT, comment.optString(Comment.COMMENT_CONTENT));
+                replyNotification.put(Comment.COMMENT_T_AUTHOR_THUMBNAIL_URL, comment.optString(Comment.COMMENT_T_AUTHOR_THUMBNAIL_URL));
+                replyNotification.put(Comment.COMMENT_T_ARTICLE_TITLE, Emotions.convert(articleTitle));
+                replyNotification.put(Comment.COMMENT_T_ARTICLE_TYPE, articleType);
+                replyNotification.put(Comment.COMMENT_SHARP_URL, comment.optString(Comment.COMMENT_SHARP_URL));
+                replyNotification.put(Comment.COMMENT_CREATE_TIME, comment.opt(Comment.COMMENT_CREATE_TIME));
+                replyNotification.put(Notification.NOTIFICATION_HAS_READ, notification.optBoolean(Notification.NOTIFICATION_HAS_READ));
+                replyNotification.put(Comment.COMMENT_T_ARTICLE_PERFECT, articlePerfect);
+                replyNotification.put(Notification.NOTIFICATION_DATA_TYPE, Notification.DATA_TYPE_C_REPLY);
+                final String articleId = comment.optString(Comment.COMMENT_ON_ARTICLE_ID);
+                replyNotification.put(Article.ARTICLE_T_ID, articleId);
+                replyNotification.put(Comment.COMMENT_T_ID, comment.optString(Keys.OBJECT_ID));
 
-                rslts.add(commentedNotification);
+                rslts.add(replyNotification);
             }
 
             return ret;
         } catch (final RepositoryException e) {
             LOGGER.log(Level.ERROR, "Gets [reply] notifications", e);
-            throw new ServiceException(e);
+
+            return null;
         }
     }
 
     /**
      * Gets 'at' type notifications with the specified user id, current page number and page size.
      *
-     * @param avatarViewMode the specified avatar view mode
      * @param userId         the specified user id
      * @param currentPageNum the specified page number
      * @param pageSize       the specified page size
@@ -861,48 +815,31 @@ public class NotificationQueryService {
      *     }, ....]
      * }
      * </pre>
-     * @throws ServiceException service exception
      */
-    public JSONObject getAtNotifications(final int avatarViewMode,
-                                         final String userId, final int currentPageNum, final int pageSize) throws ServiceException {
+    public JSONObject getAtNotifications(final String userId, final int currentPageNum, final int pageSize) {
         final JSONObject ret = new JSONObject();
         final List<JSONObject> rslts = new ArrayList<>();
-
         ret.put(Keys.RESULTS, (Object) rslts);
 
         final List<Filter> filters = new ArrayList<>();
         filters.add(new PropertyFilter(Notification.NOTIFICATION_USER_ID, FilterOperator.EQUAL, userId));
-
         final List<Filter> subFilters = new ArrayList<>();
-        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL,
-                Notification.DATA_TYPE_C_AT));
-        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL,
-                Notification.DATA_TYPE_C_ARTICLE_NEW_FOLLOWER));
-        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL,
-                Notification.DATA_TYPE_C_ARTICLE_NEW_WATCHER));
-        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL,
-                Notification.DATA_TYPE_C_COMMENT_VOTE_UP));
-        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL,
-                Notification.DATA_TYPE_C_COMMENT_VOTE_DOWN));
-        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL,
-                Notification.DATA_TYPE_C_ARTICLE_VOTE_UP));
-        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL,
-                Notification.DATA_TYPE_C_ARTICLE_VOTE_DOWN));
-
+        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_AT));
+        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_ARTICLE_NEW_FOLLOWER));
+        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_ARTICLE_NEW_WATCHER));
+        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_COMMENT_VOTE_UP));
+        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_COMMENT_VOTE_DOWN));
+        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_ARTICLE_VOTE_UP));
+        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_ARTICLE_VOTE_DOWN));
         filters.add(new CompositeFilter(CompositeFilterOperator.OR, subFilters));
-
-        final Query query = new Query().setCurrentPageNum(currentPageNum).setPageSize(pageSize).
+        final Query query = new Query().setPage(currentPageNum, pageSize).
                 setFilter(new CompositeFilter(CompositeFilterOperator.AND, filters)).
                 addSort(Notification.NOTIFICATION_HAS_READ, SortDirection.ASCENDING).
                 addSort(Keys.OBJECT_ID, SortDirection.DESCENDING);
-
         try {
             final JSONObject queryResult = notificationRepository.get(query);
             final JSONArray results = queryResult.optJSONArray(Keys.RESULTS);
-
-            ret.put(Pagination.PAGINATION_RECORD_COUNT,
-                    queryResult.optJSONObject(Pagination.PAGINATION).optInt(Pagination.PAGINATION_RECORD_COUNT));
-
+            ret.put(Pagination.PAGINATION_RECORD_COUNT, queryResult.optJSONObject(Pagination.PAGINATION).optInt(Pagination.PAGINATION_RECORD_COUNT));
             for (int i = 0; i < results.length(); i++) {
                 final JSONObject notification = results.optJSONObject(i);
                 final int dataType = notification.optInt(Notification.NOTIFICATION_DATA_TYPE);
@@ -918,12 +855,10 @@ public class NotificationQueryService {
 
                 switch (dataType) {
                     case Notification.DATA_TYPE_C_AT:
-                        final JSONObject comment = commentQueryService.getCommentById(avatarViewMode, dataId);
+                        final JSONObject comment = commentQueryService.getCommentById(dataId);
                         if (null != comment) {
                             final Query q = new Query().setPageCount(1).
-                                    addProjection(Article.ARTICLE_PERFECT, Integer.class).
-                                    addProjection(Article.ARTICLE_TITLE, String.class).
-                                    addProjection(Article.ARTICLE_TYPE, Integer.class).
+                                    select(Article.ARTICLE_PERFECT, Article.ARTICLE_TITLE, Article.ARTICLE_TYPE).
                                     setFilter(new PropertyFilter(Keys.OBJECT_ID, FilterOperator.EQUAL,
                                             comment.optString(Comment.COMMENT_ON_ARTICLE_ID)));
                             final JSONArray rlts = articleRepository.get(q).optJSONArray(Keys.RESULTS);
@@ -936,14 +871,14 @@ public class NotificationQueryService {
                             atNotification.put(Common.CONTENT, comment.optString(Comment.COMMENT_CONTENT));
                             atNotification.put(Common.THUMBNAIL_URL,
                                     comment.optString(Comment.COMMENT_T_AUTHOR_THUMBNAIL_URL));
-                            atNotification.put(Common.THUMBNAIL_UPDATE_TIME, comment.optJSONObject(Comment.COMMENT_T_COMMENTER).
-                                    optLong(UserExt.USER_UPDATE_TIME));
                             atNotification.put(Article.ARTICLE_TITLE, Emotions.convert(articleTitle));
                             atNotification.put(Article.ARTICLE_TYPE, articleType);
                             atNotification.put(Common.URL, comment.optString(Comment.COMMENT_SHARP_URL));
                             atNotification.put(Common.CREATE_TIME, comment.opt(Comment.COMMENT_CREATE_TIME));
                             atNotification.put(Notification.NOTIFICATION_T_AT_IN_ARTICLE, false);
                             atNotification.put(Article.ARTICLE_PERFECT, articlePerfect);
+                            atNotification.put(Article.ARTICLE_T_ID, comment.optString(Comment.COMMENT_ON_ARTICLE_ID));
+                            atNotification.put(Comment.COMMENT_T_ID, comment.optString(Keys.OBJECT_ID));
 
                             rslts.add(atNotification);
                         } else { // The 'at' in article content
@@ -954,22 +889,22 @@ public class NotificationQueryService {
 
                             atNotification.put(Common.AUTHOR_NAME, articleAuthor.optString(User.USER_NAME));
                             atNotification.put(Common.CONTENT, "");
-                            final String thumbnailURL = avatarQueryService.getAvatarURLByUser(avatarViewMode, articleAuthor, "48");
+                            final String thumbnailURL = avatarQueryService.getAvatarURLByUser(articleAuthor, "48");
                             atNotification.put(Common.THUMBNAIL_URL, thumbnailURL);
-                            atNotification.put(Common.THUMBNAIL_UPDATE_TIME, articleAuthor.optLong(UserExt.USER_UPDATE_TIME));
                             atNotification.put(Article.ARTICLE_TITLE, Emotions.convert(article.optString(Article.ARTICLE_TITLE)));
                             atNotification.put(Article.ARTICLE_TYPE, article.optInt(Article.ARTICLE_TYPE));
-                            atNotification.put(Common.URL, article.optString(Article.ARTICLE_PERMALINK));
+                            atNotification.put(Common.URL, Latkes.getServePath() + article.optString(Article.ARTICLE_PERMALINK));
                             atNotification.put(Common.CREATE_TIME, new Date(article.optLong(Article.ARTICLE_CREATE_TIME)));
                             atNotification.put(Notification.NOTIFICATION_T_AT_IN_ARTICLE, true);
 
                             final String tagsStr = article.optString(Article.ARTICLE_TAGS);
                             atNotification.put(Article.ARTICLE_TAGS, tagsStr);
-                            final List<JSONObject> tags = buildTagObjs(tagsStr);
+                            final List<JSONObject> tags = tagQueryService.buildTagObjs(tagsStr);
                             atNotification.put(Article.ARTICLE_T_TAG_OBJS, (Object) tags);
 
                             atNotification.put(Article.ARTICLE_COMMENT_CNT, article.optInt(Article.ARTICLE_COMMENT_CNT));
                             atNotification.put(Article.ARTICLE_PERFECT, article.optInt(Article.ARTICLE_PERFECT));
+                            atNotification.put(Article.ARTICLE_T_ID, article.optString(Keys.OBJECT_ID));
 
                             rslts.add(atNotification);
                         }
@@ -1000,14 +935,13 @@ public class NotificationQueryService {
                         final String followerUserName = followerUser.optString(User.USER_NAME);
                         atNotification.put(User.USER_NAME, followerUserName);
 
-                        final String thumbnailURL = avatarQueryService.getAvatarURLByUser(avatarViewMode, followerUser, "48");
+                        final String thumbnailURL = avatarQueryService.getAvatarURLByUser(followerUser, "48");
                         atNotification.put(Common.THUMBNAIL_URL, thumbnailURL);
-                        atNotification.put(Common.THUMBNAIL_UPDATE_TIME, followerUser.optLong(UserExt.USER_UPDATE_TIME));
 
-                        final String userLink = "<a href=\"/member/" + followerUserName + "\">" + followerUserName + "</a> ";
+                        final String userLink = UserExt.getUserLink(followerUserName);
                         description = description.replace("{user}", userLink);
 
-                        final String articleLink = " <a href=\"" + article.optString(Article.ARTICLE_PERMALINK) + "\">"
+                        final String articleLink = " <a href=\"" + Latkes.getServePath() + article.optString(Article.ARTICLE_PERMALINK) + "\">"
                                 + Emotions.convert(article.optString(Article.ARTICLE_TITLE)) + "</a>";
                         description = description.replace("{article}", articleLink);
 
@@ -1018,28 +952,23 @@ public class NotificationQueryService {
                         break;
                     case Notification.DATA_TYPE_C_COMMENT_VOTE_UP:
                     case Notification.DATA_TYPE_C_COMMENT_VOTE_DOWN:
-                    case Notification.DATA_TYPE_C_ARTICLE_VOTE_UP:
-                    case Notification.DATA_TYPE_C_ARTICLE_VOTE_DOWN:
-                        final String commentOrArticleId = dataId.split("-")[0];
-                        final String voterId = dataId.split("-")[1];
-
-                        final JSONObject voter = userRepository.get(voterId);
-                        final String voterUserName = voter.optString(User.USER_NAME);
+                        final JSONObject user = userRepository.get(userId);
+                        final int cmtViewMode = user.optInt(UserExt.USER_COMMENT_VIEW_MODE);
+                        final String commentId = dataId.split("-")[0];
+                        final String cmtVoterId = dataId.split("-")[1];
+                        final JSONObject cmtVoter = userRepository.get(cmtVoterId);
+                        String voterUserName = cmtVoter.optString(User.USER_NAME);
                         atNotification.put(User.USER_NAME, voterUserName);
-
-                        final String thumbnailURLVote = avatarQueryService.getAvatarURLByUser(avatarViewMode, voter, "48");
+                        String thumbnailURLVote = avatarQueryService.getAvatarURLByUser(cmtVoter, "48");
                         atNotification.put(Common.THUMBNAIL_URL, thumbnailURLVote);
-                        atNotification.put(Common.THUMBNAIL_UPDATE_TIME, voter.optLong(UserExt.USER_UPDATE_TIME));
 
                         JSONObject articleVote = null;
-
                         if (Notification.DATA_TYPE_C_COMMENT_VOTE_UP == dataType) {
                             description = langPropsService.get("notificationCommentVoteUpLabel");
-                            articleVote = commentRepository.get(commentOrArticleId);
+                            articleVote = commentRepository.get(commentId);
                             if (null == articleVote) {
                                 description = langPropsService.get("removedLabel");
                                 atNotification.put(Common.DESCRIPTION, description);
-
                                 rslts.add(atNotification);
 
                                 continue;
@@ -1048,43 +977,65 @@ public class NotificationQueryService {
                             articleVote = articleRepository.get(articleVote.optString(Comment.COMMENT_ON_ARTICLE_ID));
                         } else if (Notification.DATA_TYPE_C_COMMENT_VOTE_DOWN == dataType) {
                             description = langPropsService.get("notificationCommentVoteDownLabel");
-                            articleVote = commentRepository.get(commentOrArticleId);
+                            articleVote = commentRepository.get(commentId);
                             if (null == articleVote) {
                                 description = langPropsService.get("removedLabel");
                                 atNotification.put(Common.DESCRIPTION, description);
-
                                 rslts.add(atNotification);
 
                                 continue;
                             }
 
                             articleVote = articleRepository.get(articleVote.optString(Comment.COMMENT_ON_ARTICLE_ID));
-                        } else if (Notification.DATA_TYPE_C_ARTICLE_VOTE_UP == dataType) {
-                            description = langPropsService.get("notificationArticleVoteUpLabel");
-                            articleVote = articleRepository.get(commentOrArticleId);
-                        } else if (Notification.DATA_TYPE_C_ARTICLE_VOTE_DOWN == dataType) {
-                            description = langPropsService.get("notificationArticleVoteDownLabel");
-                            articleVote = articleRepository.get(commentOrArticleId);
                         }
-
                         if (null == articleVote) {
                             description = langPropsService.get("removedLabel");
                             atNotification.put(Common.DESCRIPTION, description);
-
                             rslts.add(atNotification);
 
                             continue;
                         }
 
-                        final String userLinkVote = "<a href=\"/member/" + voterUserName + "\">" + voterUserName + "</a> ";
+                        String userLinkVote = UserExt.getUserLink(voterUserName);
                         description = description.replace("{user}", userLinkVote);
+                        final String cmtVoteURL = commentQueryService.getCommentURL(commentId, cmtViewMode, Symphonys.ARTICLE_COMMENTS_CNT);
+                        atNotification.put(Common.DESCRIPTION, description.replace("{article}", Emotions.convert(cmtVoteURL)));
+                        rslts.add(atNotification);
 
-                        final String articleLinkVote = " <a href=\"" + articleVote.optString(Article.ARTICLE_PERMALINK) + "\">"
-                                + Emotions.convert(articleVote.optString(Article.ARTICLE_TITLE)) + "</a>";
+                        break;
+                    case Notification.DATA_TYPE_C_ARTICLE_VOTE_UP:
+                    case Notification.DATA_TYPE_C_ARTICLE_VOTE_DOWN:
+                        final String voteArticleId = dataId.split("-")[0];
+                        final String voterId = dataId.split("-")[1];
+                        final JSONObject voter = userRepository.get(voterId);
+                        voterUserName = voter.optString(User.USER_NAME);
+                        atNotification.put(User.USER_NAME, voterUserName);
+                        thumbnailURLVote = avatarQueryService.getAvatarURLByUser(voter, "48");
+                        atNotification.put(Common.THUMBNAIL_URL, thumbnailURLVote);
+
+                        JSONObject voteArticle = null;
+                        if (Notification.DATA_TYPE_C_ARTICLE_VOTE_UP == dataType) {
+                            description = langPropsService.get("notificationArticleVoteUpLabel");
+                            voteArticle = articleRepository.get(voteArticleId);
+                        } else if (Notification.DATA_TYPE_C_ARTICLE_VOTE_DOWN == dataType) {
+                            description = langPropsService.get("notificationArticleVoteDownLabel");
+                            voteArticle = articleRepository.get(voteArticleId);
+                        }
+
+                        if (null == voteArticle) {
+                            description = langPropsService.get("removedLabel");
+                            atNotification.put(Common.DESCRIPTION, description);
+                            rslts.add(atNotification);
+
+                            continue;
+                        }
+
+                        userLinkVote = UserExt.getUserLink(voterUserName);
+                        description = description.replace("{user}", userLinkVote);
+                        final String articleLinkVote = " <a href=\"" + Latkes.getServePath() + voteArticle.optString(Article.ARTICLE_PERMALINK) + "\">"
+                                + Emotions.convert(voteArticle.optString(Article.ARTICLE_TITLE)) + "</a>";
                         description = description.replace("{article}", articleLinkVote);
-
                         atNotification.put(Common.DESCRIPTION, description);
-
                         rslts.add(atNotification);
 
                         break;
@@ -1095,14 +1046,13 @@ public class NotificationQueryService {
         } catch (final RepositoryException e) {
             LOGGER.log(Level.ERROR, "Gets [at] notifications", e);
 
-            throw new ServiceException(e);
+            return null;
         }
     }
 
     /**
      * Gets 'following' type notifications with the specified user id, current page number and page size.
      *
-     * @param avatarViewMode the specified avatar view mode
      * @param userId         the specified user id
      * @param currentPageNum the specified page number
      * @param pageSize       the specified page size
@@ -1126,104 +1076,93 @@ public class NotificationQueryService {
      *     }, ....]
      * }
      * </pre>
-     * @throws ServiceException service exception
      */
-    public JSONObject getFollowingNotifications(final int avatarViewMode,
-                                                final String userId, final int currentPageNum, final int pageSize) throws ServiceException {
+    public JSONObject getFollowingNotifications(final String userId, final int currentPageNum, final int pageSize) {
         final JSONObject ret = new JSONObject();
         final List<JSONObject> rslts = new ArrayList<>();
-
         ret.put(Keys.RESULTS, (Object) rslts);
 
         final List<Filter> filters = new ArrayList<>();
         filters.add(new PropertyFilter(Notification.NOTIFICATION_USER_ID, FilterOperator.EQUAL, userId));
-
         final List<Filter> subFilters = new ArrayList<>();
-        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL,
-                Notification.DATA_TYPE_C_FOLLOWING_USER));
-        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL,
-                Notification.DATA_TYPE_C_FOLLOWING_ARTICLE_UPDATE));
-        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL,
-                Notification.DATA_TYPE_C_FOLLOWING_ARTICLE_COMMENT));
-
+        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_FOLLOWING_USER));
+        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_FOLLOWING_ARTICLE_UPDATE));
+        subFilters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_FOLLOWING_ARTICLE_COMMENT));
         filters.add(new CompositeFilter(CompositeFilterOperator.OR, subFilters));
-
-        final Query query = new Query().setCurrentPageNum(currentPageNum).setPageSize(pageSize).
+        final Query query = new Query().setPage(currentPageNum, pageSize).
                 setFilter(new CompositeFilter(CompositeFilterOperator.AND, filters)).
                 addSort(Notification.NOTIFICATION_HAS_READ, SortDirection.ASCENDING).
                 addSort(Keys.OBJECT_ID, SortDirection.DESCENDING);
-
         try {
             final JSONObject queryResult = notificationRepository.get(query);
             final JSONArray results = queryResult.optJSONArray(Keys.RESULTS);
-
-            ret.put(Pagination.PAGINATION_RECORD_COUNT,
-                    queryResult.optJSONObject(Pagination.PAGINATION).optInt(Pagination.PAGINATION_RECORD_COUNT));
-
+            ret.put(Pagination.PAGINATION_RECORD_COUNT, queryResult.optJSONObject(Pagination.PAGINATION).optInt(Pagination.PAGINATION_RECORD_COUNT));
             for (int i = 0; i < results.length(); i++) {
                 final JSONObject notification = results.optJSONObject(i);
                 final String commentId = notification.optString(Notification.NOTIFICATION_DATA_ID);
+                final int dataType = notification.optInt(Notification.NOTIFICATION_DATA_TYPE);
+                final JSONObject followingNotification = new JSONObject();
+                followingNotification.put(Notification.NOTIFICATION_DATA_TYPE, dataType);
 
-                final JSONObject comment = commentQueryService.getCommentById(avatarViewMode, commentId);
-                if (null != comment) {
-                    final Query q = new Query().setPageCount(1).
-                            addProjection(Article.ARTICLE_PERFECT, Integer.class).
-                            addProjection(Article.ARTICLE_TITLE, String.class).
-                            addProjection(Article.ARTICLE_TYPE, Integer.class).
-                            setFilter(new PropertyFilter(Keys.OBJECT_ID, FilterOperator.EQUAL,
-                                    comment.optString(Comment.COMMENT_ON_ARTICLE_ID)));
-                    final JSONArray rlts = articleRepository.get(q).optJSONArray(Keys.RESULTS);
-                    final JSONObject article = rlts.optJSONObject(0);
-                    final String articleTitle = article.optString(Article.ARTICLE_TITLE);
-                    final int articleType = article.optInt(Article.ARTICLE_TYPE);
-                    final int articlePerfect = article.optInt(Article.ARTICLE_PERFECT);
+                switch (dataType) {
+                    case Notification.DATA_TYPE_C_FOLLOWING_ARTICLE_COMMENT:
+                        final JSONObject comment = commentQueryService.getCommentById(commentId);
+                        final Query q = new Query().setPageCount(1).
+                                select(Article.ARTICLE_PERFECT, Article.ARTICLE_TITLE, Article.ARTICLE_TYPE).
+                                setFilter(new PropertyFilter(Keys.OBJECT_ID, FilterOperator.EQUAL,
+                                        comment.optString(Comment.COMMENT_ON_ARTICLE_ID)));
+                        final JSONArray rlts = articleRepository.get(q).optJSONArray(Keys.RESULTS);
+                        JSONObject article = rlts.optJSONObject(0);
+                        final String articleTitle = article.optString(Article.ARTICLE_TITLE);
+                        final int articleType = article.optInt(Article.ARTICLE_TYPE);
+                        final int articlePerfect = article.optInt(Article.ARTICLE_PERFECT);
 
-                    final JSONObject followingNotification = new JSONObject();
-                    followingNotification.put(Keys.OBJECT_ID, notification.optString(Keys.OBJECT_ID));
-                    followingNotification.put(Common.AUTHOR_NAME, comment.optString(Comment.COMMENT_T_AUTHOR_NAME));
-                    followingNotification.put(Common.CONTENT, comment.optString(Comment.COMMENT_CONTENT));
-                    followingNotification.put(Common.THUMBNAIL_URL,
-                            comment.optString(Comment.COMMENT_T_AUTHOR_THUMBNAIL_URL));
-                    followingNotification.put(Common.THUMBNAIL_UPDATE_TIME, comment.optJSONObject(Comment.COMMENT_T_COMMENTER).
-                            optLong(UserExt.USER_UPDATE_TIME));
-                    followingNotification.put(Article.ARTICLE_TITLE, Emotions.convert(articleTitle));
-                    followingNotification.put(Article.ARTICLE_TYPE, articleType);
-                    followingNotification.put(Common.URL, comment.optString(Comment.COMMENT_SHARP_URL));
-                    followingNotification.put(Common.CREATE_TIME, comment.opt(Comment.COMMENT_CREATE_TIME));
-                    followingNotification.put(Notification.NOTIFICATION_HAS_READ, notification.optBoolean(Notification.NOTIFICATION_HAS_READ));
-                    followingNotification.put(Notification.NOTIFICATION_T_IS_COMMENT, true);
-                    followingNotification.put(Article.ARTICLE_PERFECT, articlePerfect);
+                        followingNotification.put(Keys.OBJECT_ID, notification.optString(Keys.OBJECT_ID));
+                        followingNotification.put(Common.AUTHOR_NAME, comment.optString(Comment.COMMENT_T_AUTHOR_NAME));
+                        followingNotification.put(Common.CONTENT, comment.optString(Comment.COMMENT_CONTENT));
+                        followingNotification.put(Common.THUMBNAIL_URL,
+                                comment.optString(Comment.COMMENT_T_AUTHOR_THUMBNAIL_URL));
+                        followingNotification.put(Article.ARTICLE_TITLE, Emotions.convert(articleTitle));
+                        followingNotification.put(Article.ARTICLE_TYPE, articleType);
+                        followingNotification.put(Common.URL, comment.optString(Comment.COMMENT_SHARP_URL));
+                        followingNotification.put(Common.CREATE_TIME, comment.opt(Comment.COMMENT_CREATE_TIME));
+                        followingNotification.put(Notification.NOTIFICATION_HAS_READ, notification.optBoolean(Notification.NOTIFICATION_HAS_READ));
+                        followingNotification.put(Notification.NOTIFICATION_T_IS_COMMENT, true);
+                        followingNotification.put(Article.ARTICLE_PERFECT, articlePerfect);
 
-                    rslts.add(followingNotification);
-                } else { // The 'at' in article content
-                    final JSONObject article = articleRepository.get(commentId);
+                        rslts.add(followingNotification);
 
-                    final String articleAuthorId = article.optString(Article.ARTICLE_AUTHOR_ID);
-                    final JSONObject articleAuthor = userRepository.get(articleAuthorId);
+                        break;
+                    case Notification.DATA_TYPE_C_FOLLOWING_USER:
+                    case Notification.DATA_TYPE_C_FOLLOWING_ARTICLE_UPDATE:
+                        article = articleRepository.get(commentId);
 
-                    final JSONObject followingNotification = new JSONObject();
-                    followingNotification.put(Keys.OBJECT_ID, notification.optString(Keys.OBJECT_ID));
-                    followingNotification.put(Common.AUTHOR_NAME, articleAuthor.optString(User.USER_NAME));
-                    followingNotification.put(Common.CONTENT, "");
-                    final String thumbnailURL = avatarQueryService.getAvatarURLByUser(avatarViewMode, articleAuthor, "48");
-                    followingNotification.put(Common.THUMBNAIL_URL, thumbnailURL);
-                    followingNotification.put(Common.THUMBNAIL_UPDATE_TIME, articleAuthor.optLong(UserExt.USER_UPDATE_TIME));
-                    followingNotification.put(Article.ARTICLE_TITLE, Emotions.convert(article.optString(Article.ARTICLE_TITLE)));
-                    followingNotification.put(Article.ARTICLE_TYPE, article.optInt(Article.ARTICLE_TYPE));
-                    followingNotification.put(Common.URL, article.optString(Article.ARTICLE_PERMALINK));
-                    followingNotification.put(Common.CREATE_TIME, new Date(article.optLong(Article.ARTICLE_CREATE_TIME)));
-                    followingNotification.put(Notification.NOTIFICATION_HAS_READ, notification.optBoolean(Notification.NOTIFICATION_HAS_READ));
-                    followingNotification.put(Notification.NOTIFICATION_T_IS_COMMENT, false);
+                        final String articleAuthorId = article.optString(Article.ARTICLE_AUTHOR_ID);
+                        final JSONObject articleAuthor = userRepository.get(articleAuthorId);
 
-                    final String tagsStr = article.optString(Article.ARTICLE_TAGS);
-                    followingNotification.put(Article.ARTICLE_TAGS, tagsStr);
-                    final List<JSONObject> tags = buildTagObjs(tagsStr);
-                    followingNotification.put(Article.ARTICLE_T_TAG_OBJS, (Object) tags);
+                        followingNotification.put(Keys.OBJECT_ID, notification.optString(Keys.OBJECT_ID));
+                        followingNotification.put(Common.AUTHOR_NAME, articleAuthor.optString(User.USER_NAME));
+                        followingNotification.put(Common.CONTENT, "");
+                        final String thumbnailURL = avatarQueryService.getAvatarURLByUser(articleAuthor, "48");
+                        followingNotification.put(Common.THUMBNAIL_URL, thumbnailURL);
+                        followingNotification.put(Article.ARTICLE_TITLE, Emotions.convert(article.optString(Article.ARTICLE_TITLE)));
+                        followingNotification.put(Article.ARTICLE_TYPE, article.optInt(Article.ARTICLE_TYPE));
+                        followingNotification.put(Common.URL, Latkes.getServePath() + article.optString(Article.ARTICLE_PERMALINK));
+                        followingNotification.put(Common.CREATE_TIME, new Date(article.optLong(Article.ARTICLE_CREATE_TIME)));
+                        followingNotification.put(Notification.NOTIFICATION_HAS_READ, notification.optBoolean(Notification.NOTIFICATION_HAS_READ));
+                        followingNotification.put(Notification.NOTIFICATION_T_IS_COMMENT, false);
 
-                    followingNotification.put(Article.ARTICLE_COMMENT_CNT, article.optInt(Article.ARTICLE_COMMENT_CNT));
-                    followingNotification.put(Article.ARTICLE_PERFECT, article.optInt(Article.ARTICLE_PERFECT));
+                        final String tagsStr = article.optString(Article.ARTICLE_TAGS);
+                        followingNotification.put(Article.ARTICLE_TAGS, tagsStr);
+                        final List<JSONObject> tags = tagQueryService.buildTagObjs(tagsStr);
+                        followingNotification.put(Article.ARTICLE_T_TAG_OBJS, (Object) tags);
 
-                    rslts.add(followingNotification);
+                        followingNotification.put(Article.ARTICLE_COMMENT_CNT, article.optInt(Article.ARTICLE_COMMENT_CNT));
+                        followingNotification.put(Article.ARTICLE_PERFECT, article.optInt(Article.ARTICLE_PERFECT));
+
+                        rslts.add(followingNotification);
+
+                        break;
                 }
             }
 
@@ -1231,14 +1170,13 @@ public class NotificationQueryService {
         } catch (final RepositoryException e) {
             LOGGER.log(Level.ERROR, "Gets [following] notifications", e);
 
-            throw new ServiceException(e);
+            return null;
         }
     }
 
     /**
      * Gets 'broadcast' type notifications with the specified user id, current page number and page size.
      *
-     * @param avatarViewMode the specified avatar view mode
      * @param userId         the specified user id
      * @param currentPageNum the specified page number
      * @param pageSize       the specified page size
@@ -1262,60 +1200,49 @@ public class NotificationQueryService {
      *     }, ....]
      * }
      * </pre>
-     * @throws ServiceException service exception
      */
-    public JSONObject getBroadcastNotifications(final int avatarViewMode,
-                                                final String userId, final int currentPageNum, final int pageSize) throws ServiceException {
+    public JSONObject getBroadcastNotifications(final String userId, final int currentPageNum, final int pageSize) {
         final JSONObject ret = new JSONObject();
         final List<JSONObject> rslts = new ArrayList<>();
-
         ret.put(Keys.RESULTS, (Object) rslts);
 
         final List<Filter> filters = new ArrayList<>();
         filters.add(new PropertyFilter(Notification.NOTIFICATION_USER_ID, FilterOperator.EQUAL, userId));
         filters.add(new PropertyFilter(Notification.NOTIFICATION_DATA_TYPE, FilterOperator.EQUAL, Notification.DATA_TYPE_C_BROADCAST));
-
-        final Query query = new Query().setCurrentPageNum(currentPageNum).setPageSize(pageSize).
+        final Query query = new Query().setPage(currentPageNum, pageSize).
                 setFilter(new CompositeFilter(CompositeFilterOperator.AND, filters)).
                 addSort(Notification.NOTIFICATION_HAS_READ, SortDirection.ASCENDING).
                 addSort(Keys.OBJECT_ID, SortDirection.DESCENDING);
-
         try {
             final JSONObject queryResult = notificationRepository.get(query);
             final JSONArray results = queryResult.optJSONArray(Keys.RESULTS);
-
-            ret.put(Pagination.PAGINATION_RECORD_COUNT,
-                    queryResult.optJSONObject(Pagination.PAGINATION).optInt(Pagination.PAGINATION_RECORD_COUNT));
-
+            ret.put(Pagination.PAGINATION_RECORD_COUNT, queryResult.optJSONObject(Pagination.PAGINATION).optInt(Pagination.PAGINATION_RECORD_COUNT));
             for (int i = 0; i < results.length(); i++) {
                 final JSONObject notification = results.optJSONObject(i);
                 final String articleId = notification.optString(Notification.NOTIFICATION_DATA_ID);
-
                 final Query q = new Query().setPageCount(1).
-                        addProjection(Article.ARTICLE_TITLE, String.class).
-                        addProjection(Article.ARTICLE_TYPE, Integer.class).
-                        addProjection(Article.ARTICLE_AUTHOR_ID, String.class).
-                        addProjection(Article.ARTICLE_PERMALINK, String.class).
-                        addProjection(Article.ARTICLE_CREATE_TIME, Long.class).
-                        addProjection(Article.ARTICLE_TAGS, String.class).
-                        addProjection(Article.ARTICLE_COMMENT_CNT, Integer.class).
-                        addProjection(Article.ARTICLE_PERFECT, Integer.class).
+                        select(Article.ARTICLE_TITLE,
+                                Article.ARTICLE_TYPE,
+                                Article.ARTICLE_AUTHOR_ID,
+                                Article.ARTICLE_PERMALINK,
+                                Article.ARTICLE_CREATE_TIME,
+                                Article.ARTICLE_TAGS,
+                                Article.ARTICLE_COMMENT_CNT,
+                                Article.ARTICLE_PERFECT).
                         setFilter(new PropertyFilter(Keys.OBJECT_ID, FilterOperator.EQUAL, articleId));
                 final JSONArray rlts = articleRepository.get(q).optJSONArray(Keys.RESULTS);
                 final JSONObject article = rlts.optJSONObject(0);
 
                 if (null == article) {
-                    LOGGER.warn("Not found article[id=" + articleId + ']');
-
+                    LOGGER.warn("Not found article [id=" + articleId + "]");
                     continue;
                 }
 
                 final String articleTitle = article.optString(Article.ARTICLE_TITLE);
                 final String articleAuthorId = article.optString(Article.ARTICLE_AUTHOR_ID);
                 final JSONObject author = userRepository.get(articleAuthorId);
-
                 if (null == author) {
-                    LOGGER.warn("Not found user[id=" + articleAuthorId + ']');
+                    LOGGER.warn("Not found user [id=" + articleAuthorId + "]");
 
                     continue;
                 }
@@ -1324,22 +1251,17 @@ public class NotificationQueryService {
                 broadcastNotification.put(Keys.OBJECT_ID, notification.optString(Keys.OBJECT_ID));
                 broadcastNotification.put(Common.AUTHOR_NAME, author.optString(User.USER_NAME));
                 broadcastNotification.put(Common.CONTENT, "");
-                broadcastNotification.put(Common.THUMBNAIL_URL,
-                        avatarQueryService.getAvatarURLByUser(avatarViewMode, author, "48"));
-                broadcastNotification.put(Common.THUMBNAIL_UPDATE_TIME, author.optLong(UserExt.USER_UPDATE_TIME));
+                broadcastNotification.put(Common.THUMBNAIL_URL, avatarQueryService.getAvatarURLByUser(author, "48"));
                 broadcastNotification.put(Article.ARTICLE_TITLE, Emotions.convert(articleTitle));
-                broadcastNotification.put(Common.URL, article.optString(Article.ARTICLE_PERMALINK));
+                broadcastNotification.put(Common.URL, Latkes.getServePath() + article.optString(Article.ARTICLE_PERMALINK));
                 broadcastNotification.put(Common.CREATE_TIME, new Date(article.optLong(Article.ARTICLE_CREATE_TIME)));
-                broadcastNotification.put(Notification.NOTIFICATION_HAS_READ,
-                        notification.optBoolean(Notification.NOTIFICATION_HAS_READ));
+                broadcastNotification.put(Notification.NOTIFICATION_HAS_READ, notification.optBoolean(Notification.NOTIFICATION_HAS_READ));
                 broadcastNotification.put(Common.TYPE, Article.ARTICLE);
                 broadcastNotification.put(Article.ARTICLE_TYPE, article.optInt(Article.ARTICLE_TYPE));
-
                 final String tagsStr = article.optString(Article.ARTICLE_TAGS);
                 broadcastNotification.put(Article.ARTICLE_TAGS, tagsStr);
-                final List<JSONObject> tags = buildTagObjs(tagsStr);
+                final List<JSONObject> tags = tagQueryService.buildTagObjs(tagsStr);
                 broadcastNotification.put(Article.ARTICLE_T_TAG_OBJS, (Object) tags);
-
                 broadcastNotification.put(Article.ARTICLE_COMMENT_CNT, article.optInt(Article.ARTICLE_COMMENT_CNT));
                 broadcastNotification.put(Article.ARTICLE_PERFECT, article.optInt(Article.ARTICLE_PERFECT));
 
@@ -1348,38 +1270,9 @@ public class NotificationQueryService {
 
             return ret;
         } catch (final RepositoryException e) {
-            LOGGER.log(Level.ERROR, "Gets [broadcast] notifications", e);
+            LOGGER.log(Level.ERROR, "Get [broadcast] notifications", e);
 
-            throw new ServiceException(e);
+            return null;
         }
-    }
-
-    /**
-     * Builds tag objects with the specified tags string.
-     *
-     * @param tagsStr the specified tags string
-     * @return tag objects
-     */
-    private List<JSONObject> buildTagObjs(final String tagsStr) {
-        final List<JSONObject> ret = new ArrayList<>();
-
-        final String[] tagTitles = tagsStr.split(",");
-        for (final String tagTitle : tagTitles) {
-            final JSONObject tag = new JSONObject();
-            tag.put(Tag.TAG_TITLE, tagTitle);
-
-            final String uri = tagRepository.getURIByTitle(tagTitle);
-            if (null != uri) {
-                tag.put(Tag.TAG_URI, uri);
-            } else {
-                tag.put(Tag.TAG_URI, tagTitle);
-
-                tagRepository.getURIByTitle(tagTitle);
-            }
-
-            ret.add(tag);
-        }
-
-        return ret;
     }
 }

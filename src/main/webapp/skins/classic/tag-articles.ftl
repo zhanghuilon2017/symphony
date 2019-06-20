@@ -1,3 +1,22 @@
+<#--
+
+    Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+    Copyright (C) 2012-present, b3log.org
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
 <#include "macro-head.ftl">
 <#include "macro-list.ftl">
 <#include "macro-pagination.ftl">
@@ -46,7 +65,7 @@
                             </span>
                         </div>
                         <#if tag.tagIconPath != "">
-                        <div class="content-reset desc">
+                        <div class="vditor-reset desc">
                             ${tag.tagDescription}
                         </div>
                         </#if>
@@ -138,7 +157,10 @@
                 filter: function(href){
                     return 0 > href.indexOf('${servePath}/tag');
                 },
-                callback: function(){}
+                callback: function () {
+                    Util.parseMarkdown();
+                    Util.parseHljs()
+                }
             });
             NProgress.configure({ showSpinner: false });
             $('#tag-pjax-container').bind('pjax.start', function(){

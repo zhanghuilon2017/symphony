@@ -1,19 +1,19 @@
 /*
- * Symphony - A modern community (forum/SNS/blog) platform written in Java.
- * Copyright (C) 2012-2017,  b3log.org & hacpai.com
+ * Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+ * Copyright (C) 2012-present, b3log.org
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package org.b3log.symphony.model;
 
@@ -21,7 +21,7 @@ package org.b3log.symphony.model;
  * This class defines all verifycode model relevant keys.
  *
  * @author <a href="http://88250.b3log.org">Liang Ding</a>
- * @version 1.1.0.1, Jul 3, 2016
+ * @version 1.2.0.0, Jun 12, 2018
  * @since 1.3.0
  */
 public final class Verifycode {
@@ -82,11 +82,16 @@ public final class Verifycode {
      * Business type - Register.
      */
     public static final int BIZ_TYPE_C_REGISTER = 0;
-    
+
     /**
      * Business type - Reset password.
      */
     public static final int BIZ_TYPE_C_RESET_PWD = 1;
+
+    /**
+     * Business type - Bind email.
+     */
+    public static final int BIZ_TYPE_C_BIND_EMAIL = 3;
 
     // Status constants
     /**

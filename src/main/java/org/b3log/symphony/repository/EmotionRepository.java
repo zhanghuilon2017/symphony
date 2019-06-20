@@ -1,19 +1,19 @@
 /*
- * Symphony - A modern community (forum/SNS/blog) platform written in Java.
- * Copyright (C) 2012-2017,  b3log.org & hacpai.com
+ * Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+ * Copyright (C) 2012-present, b3log.org
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package org.b3log.symphony.repository;
 
@@ -27,9 +27,9 @@ import org.json.JSONObject;
 /**
  * Emotion repository.
  *
- * @author Zephyr
+ * @author <a href="http://zephyr.b3log.org">Zephyr</a>
  * @author <a href="http://88250.b3log.org">Liang Ding</a>
- * @version 1.0.1.0, Aug 18, 2016
+ * @version 1.0.1.1, Mar 5, 2019
  * @since 1.5.0
  */
 @Repository
@@ -50,13 +50,10 @@ public class EmotionRepository extends AbstractRepository {
      * @throws RepositoryException repository exception
      */
     public String getUserEmojis(final String userId) throws RepositoryException {
-        final Query query = new Query();
-        query.setFilter(CompositeFilterOperator.and(
+        final Query query = new Query().setFilter(CompositeFilterOperator.and(
                 new PropertyFilter(Emotion.EMOTION_USER_ID, FilterOperator.EQUAL, userId),
                 new PropertyFilter(Emotion.EMOTION_TYPE, FilterOperator.EQUAL, Emotion.EMOTION_TYPE_C_EMOJI)
-        ));
-
-        query.addSort(Emotion.EMOTION_SORT, SortDirection.ASCENDING);
+        )).addSort(Emotion.EMOTION_SORT, SortDirection.ASCENDING);
 
         final JSONObject result = get(query);
         final JSONArray array = result.optJSONArray(Keys.RESULTS);
@@ -76,22 +73,12 @@ public class EmotionRepository extends AbstractRepository {
     }
 
     /**
-     * Clears a user's emotions.
+     * Remove emotions by the specified user id.
      *
      * @param userId the specified user id
      * @throws RepositoryException repository exception
      */
-    public void removeUserEmotions(final String userId) throws RepositoryException {
-        final PropertyFilter pf = new PropertyFilter(Emotion.EMOTION_USER_ID, FilterOperator.EQUAL, userId);
-        final Query query = new Query().setFilter(pf);
-        final JSONObject result = get(query);
-        final JSONArray array = result.optJSONArray(Keys.RESULTS);
-        if (0 == array.length()) {
-            return;
-        }
-
-        for (int i = 0; i < array.length(); i++) {
-            remove(array.optJSONObject(i).optString(Keys.OBJECT_ID));
-        }
+    public void removeByUserId(final String userId) throws RepositoryException {
+        remove(new Query().setFilter(new PropertyFilter(Emotion.EMOTION_USER_ID, FilterOperator.EQUAL, userId)));
     }
 }

@@ -1,24 +1,23 @@
 /*
- * Symphony - A modern community (forum/SNS/blog) platform written in Java.
- * Copyright (C) 2012-2017,  b3log.org & hacpai.com
+ * Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+ * Copyright (C) 2012-present, b3log.org
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package org.b3log.symphony.util;
 
 import org.apache.commons.lang.StringUtils;
-import org.b3log.latke.util.MD5;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -28,7 +27,7 @@ import java.util.regex.Pattern;
  *
  * @author <a href="http://88250.b3log.org">Liang Ding</a>
  * @author <a href="http://vanessa.b3log.org">Liyuan Li</a>
- * @version 1.0.1.1, Mar 31, 2017
+ * @version 1.0.2.0, Jul 15, 2018
  * @since 2.1.0
  */
 public final class MP3Players {
@@ -54,9 +53,12 @@ public final class MP3Players {
 
         final Matcher m = PATTERN.matcher(content);
         while (m.find()) {
-            String mp3URL = m.group();
-            String mp3Name = StringUtils.substringBetween(mp3URL, "\">", ".mp3</a>");
-            mp3URL = StringUtils.substringBetween(mp3URL, "href=\"", "\" rel=");
+            final String g = m.group();
+            String mp3Name = StringUtils.substringBetween(g, "\">", ".mp3</a>");
+            String mp3URL = StringUtils.substringBetween(g, "href=\"", "\" rel=");
+            if (StringUtils.isBlank(mp3URL)) {
+                mp3URL = StringUtils.substringBetween(g, "href=\"", "\"");
+            }
 
             m.appendReplacement(contentBuilder, "<div class=\"aplayer content-audio\" data-title=\""
                     + mp3Name + "\" data-url=\"" + mp3URL + "\" ></div>\n");
@@ -66,5 +68,6 @@ public final class MP3Players {
         return contentBuilder.toString();
     }
 
-    private MP3Players() {}
+    private MP3Players() {
+    }
 }

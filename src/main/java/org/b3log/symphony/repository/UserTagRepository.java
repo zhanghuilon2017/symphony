@@ -1,19 +1,19 @@
 /*
- * Symphony - A modern community (forum/SNS/blog) platform written in Java.
- * Copyright (C) 2012-2017,  b3log.org & hacpai.com
+ * Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+ * Copyright (C) 2012-present, b3log.org
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package org.b3log.symphony.repository;
 
@@ -56,7 +56,7 @@ public class UserTagRepository extends AbstractRepository {
                 new PropertyFilter(User.USER + "_" + Keys.OBJECT_ID, FilterOperator.EQUAL, userId),
                 new PropertyFilter(Tag.TAG + "_" + Keys.OBJECT_ID, FilterOperator.EQUAL, tagId),
                 new PropertyFilter(Common.TYPE, FilterOperator.EQUAL, type)
-        )).setCurrentPageNum(1).setPageSize(Integer.MAX_VALUE).setPageCount(1);
+        )).setPage(1, Integer.MAX_VALUE).setPageCount(1);
 
         final JSONArray rels = get(query).optJSONArray(Keys.RESULTS);
         for (int i = 0; i < rels.length(); i++) {
@@ -88,7 +88,7 @@ public class UserTagRepository extends AbstractRepository {
      */
     public JSONObject getByUserId(final String userId, final int currentPageNum, final int pageSize) throws RepositoryException {
         final Query query = new Query().setFilter(new PropertyFilter(User.USER + "_" + Keys.OBJECT_ID, FilterOperator.EQUAL, userId)).
-                setCurrentPageNum(currentPageNum).setPageSize(pageSize).setPageCount(1);
+                setPage(currentPageNum, pageSize).setPageCount(1);
 
         return get(query);
     }
@@ -116,7 +116,7 @@ public class UserTagRepository extends AbstractRepository {
      */
     public JSONObject getByTagId(final String tagId, final int currentPageNum, final int pageSize) throws RepositoryException {
         final Query query = new Query().setFilter(new PropertyFilter(Tag.TAG + "_" + Keys.OBJECT_ID, FilterOperator.EQUAL, tagId)).
-                setCurrentPageNum(currentPageNum).setPageSize(pageSize).setPageCount(1);
+                setPage(currentPageNum, pageSize).setPageCount(1);
 
         return get(query);
     }

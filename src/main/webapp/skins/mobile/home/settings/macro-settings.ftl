@@ -1,3 +1,22 @@
+<#--
+
+    Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+    Copyright (C) 2012-present, b3log.org
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
 <#macro home type>
 <#include "../../macro-head.ftl">
 <!DOCTYPE html>
@@ -23,14 +42,10 @@
                     ${functionLabel}
                     <#elseif type == "point">
                     ${pointLabel}
-                    <#elseif type == "location">
-                    ${geoLabel}
                     <#elseif type == "privacy">
                     ${privacyLabel}
-                    <#elseif type == "password">
-                    ${passwordLabel}
-                    <#elseif type == "b3">
-                    B3
+                    <#elseif type == "account">
+                    ${accountLabel}
                     <#elseif type == "i18n">
                     ${i18nLabel}
                     <#elseif type == "data">
@@ -44,13 +59,12 @@
                 <ul class="tab fn-clear fn-none">
                     <li<#if 'profile' == type> class="fn-none"</#if>><a href="${servePath}/settings">${profilesLabel}</a></li>
                     <li<#if 'avatar' == type> class="fn-none"</#if>><a href="${servePath}/settings/avatar">${avatarLabel}</a></li>
+                    <li<#if 'account' == type> class="fn-none"</#if>><a href="${servePath}/settings/account">${accountLabel}</a></li>
                     <li<#if 'invite' == type> class="fn-none"</#if>><a href="${servePath}/settings/invite">${inviteLabel}</a></li>
                     <li<#if 'function' == type> class="fn-none"</#if>><a href="${servePath}/settings/function">${functionLabel}</a></li>
                     <li<#if 'point' == type> class="fn-none"</#if>><a href="${servePath}/settings/point">${pointLabel}</a></li>
                     <li<#if 'location' == type> class="fn-none"</#if>><a href="${servePath}/settings/location">${geoLabel}</a></li>
                     <li<#if 'privacy' == type> class="fn-none"</#if>><a href="${servePath}/settings/privacy">${privacyLabel}</a></li>
-                    <li<#if 'password' == type> class="fn-none"</#if>><a href="${servePath}/settings/password">${passwordLabel}</a></li>
-                    <li<#if 'b3' == type> class="fn-none"</#if>><a href="${servePath}/settings/b3">B3</a></li>
                     <li<#if 'i18n' == type> class="fn-none"</#if>><a href="${servePath}/settings/i18n">${i18nLabel}</a></li>
                     <li<#if 'data' == type> class="fn-none"</#if>><a href="${servePath}/settings/data">${dataLabel}</a></li>
                     <li<#if 'help' == type> class="current"</#if>><a href="${servePath}/settings/help">${helpLabel}</a></li>
@@ -59,9 +73,6 @@
             <div class="wrapper">
                 <div class="fn-hr10"></div>
                 <#nested>
-            </div>
-            <div class="side">
-                <#include "../home-side.ftl">
             </div>
         </div>
         <#include "../../footer.ftl">
@@ -79,8 +90,6 @@
                     Label.tagsErrorLabel = "${tagsErrorLabel}";
                     Label.invalidUserQQLabel = "${invalidUserQQLabel}";
                     Label.invalidUserIntroLabel = "${invalidUserIntroLabel}";
-                    Label.invalidUserB3KeyLabel = "${invalidUserB3KeyLabel}";
-                    Label.invalidUserB3ClientURLLabel = "${invalidUserB3ClientURLLabel}";
                     Label.confirmPwdErrorLabel = "${confirmPwdErrorLabel}";
                     Label.invalidUserNicknameLabel = "${invalidUserNicknameLabel}";
                     Label.previewLabel = "${previewLabel}";

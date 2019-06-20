@@ -1,46 +1,36 @@
 /*
- * Symphony - A modern community (forum/SNS/blog) platform written in Java.
- * Copyright (C) 2012-2017,  b3log.org & hacpai.com
+ * Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+ * Copyright (C) 2012-present, b3log.org
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package org.b3log.symphony.processor.channel;
 
 import freemarker.template.Template;
 import org.apache.commons.lang.StringUtils;
 import org.b3log.latke.Keys;
-import org.b3log.latke.Latkes;
-import org.b3log.latke.ioc.LatkeBeanManager;
-import org.b3log.latke.ioc.LatkeBeanManagerImpl;
+import org.b3log.latke.ioc.BeanManager;
 import org.b3log.latke.logging.Level;
 import org.b3log.latke.logging.Logger;
 import org.b3log.latke.model.User;
-import org.b3log.latke.repository.jdbc.JdbcRepository;
 import org.b3log.latke.service.LangPropsService;
-import org.b3log.latke.service.LangPropsServiceImpl;
 import org.b3log.latke.util.Locales;
-import org.b3log.latke.util.Strings;
 import org.b3log.symphony.model.*;
-import org.b3log.symphony.processor.SkinRenderer;
-import org.b3log.symphony.repository.ArticleRepository;
 import org.b3log.symphony.service.RoleQueryService;
-import org.b3log.symphony.service.TimelineMgmtService;
 import org.b3log.symphony.service.UserQueryService;
-import org.b3log.symphony.util.Emotions;
-import org.b3log.symphony.util.Symphonys;
+import org.b3log.symphony.util.Templates;
 import org.json.JSONObject;
-import org.jsoup.Jsoup;
 
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
@@ -55,11 +45,16 @@ import java.util.concurrent.ConcurrentHashMap;
  * Article channel.
  *
  * @author <a href="http://88250.b3log.org">Liang Ding</a>
- * @version 2.3.9.6, Dec 17, 2016
+ * @version 2.3.9.9, Sep 27, 2018
  * @since 1.3.0
  */
 @ServerEndpoint(value = "/article-channel", configurator = Channels.WebSocketConfigurator.class)
 public class ArticleChannel {
+
+    /**
+     * Logger.
+     */
+    private static final Logger LOGGER = Logger.getLogger(ArticleChannel.class);
 
     /**
      * Session set.
@@ -69,13 +64,7 @@ public class ArticleChannel {
     /**
      * Article viewing map &lt;articleId, count&gt;.
      */
-    public static final Map<String, Integer> ARTICLE_VIEWS
-            = Collections.synchronizedMap(new HashMap<String, Integer>());
-
-    /**
-     * Logger.
-     */
-    private static final Logger LOGGER = Logger.getLogger(ArticleChannel.class);
+    public static final Map<String, Integer> ARTICLE_VIEWS = Collections.synchronizedMap(new HashMap<>());
 
     /**
      * Notifies the specified article heat message to browsers.
@@ -90,8 +79,8 @@ public class ArticleChannel {
         final String msgStr = message.toString();
 
         for (final Session session : SESSIONS) {
-            final String viewingArticleId = (String) Channels.getHttpParameter(session, Article.ARTICLE_T_ID);
-            if (Strings.isEmptyOrNull(viewingArticleId)
+            final String viewingArticleId = Channels.getHttpParameter(session, Article.ARTICLE_T_ID);
+            if (StringUtils.isBlank(viewingArticleId)
                     || !viewingArticleId.equals(message.optString(Article.ARTICLE_T_ID))) {
                 continue;
             }
@@ -110,15 +99,15 @@ public class ArticleChannel {
     public static void notifyComment(final JSONObject message) {
         message.put(Common.TYPE, Comment.COMMENT);
 
-        final LatkeBeanManager beanManager = LatkeBeanManagerImpl.getInstance();
+        final BeanManager beanManager = BeanManager.getInstance();
         final UserQueryService userQueryService = beanManager.getReference(UserQueryService.class);
-        final ArticleRepository articleRepository = beanManager.getReference(ArticleRepository.class);
         final RoleQueryService roleQueryService = beanManager.getReference(RoleQueryService.class);
-        final LangPropsService langPropsService = beanManager.getReference(LangPropsServiceImpl.class);
+        final LangPropsService langPropsService = beanManager.getReference(LangPropsService.class);
+        final JSONObject article = message.optJSONObject(Article.ARTICLE);
 
         for (final Session session : SESSIONS) {
-            final String viewingArticleId = (String) Channels.getHttpParameter(session, Article.ARTICLE_T_ID);
-            if (Strings.isEmptyOrNull(viewingArticleId)
+            final String viewingArticleId = Channels.getHttpParameter(session, Article.ARTICLE_T_ID);
+            if (StringUtils.isBlank(viewingArticleId)
                     || !viewingArticleId.equals(message.optString(Article.ARTICLE_T_ID))) {
                 continue;
             }
@@ -135,11 +124,6 @@ public class ArticleChannel {
 
                     final String userName = user.optString(User.USER_NAME);
                     final String userRole = user.optString(User.USER_ROLE);
-
-                    final JSONObject article = articleRepository.get(viewingArticleId);
-                    if (null == article) {
-                        continue;
-                    }
 
                     final String articleAuthorId = article.optString(Article.ARTICLE_AUTHOR_ID);
                     final String userId = user.optString(Keys.OBJECT_ID);
@@ -175,19 +159,18 @@ public class ArticleChannel {
                 final Map dataModel = new HashMap();
                 dataModel.put(Common.IS_LOGGED_IN, isLoggedIn);
                 dataModel.put(Common.CURRENT_USER, user);
+                article.put(Common.OFFERED, false);
+                dataModel.put(Article.ARTICLE, article);
                 dataModel.put(Common.CSRF_TOKEN, Channels.getHttpSessionAttribute(session, Common.CSRF_TOKEN));
                 Keys.fillServer(dataModel);
                 dataModel.put(Comment.COMMENT, message);
 
-                String templateDirName = Symphonys.get("skinDirName");
                 if (isLoggedIn) {
                     dataModel.putAll(langPropsService.getAll(Locales.getLocale(user.optString(UserExt.USER_LANGUAGE))));
                     final String userId = user.optString(Keys.OBJECT_ID);
                     final Map<String, JSONObject> permissions
                             = roleQueryService.getUserPermissionsGrantMap(userId);
                     dataModel.put(Permission.PERMISSIONS, permissions);
-
-                    templateDirName = user.optString(UserExt.USER_SKIN);
                 } else {
                     dataModel.putAll(langPropsService.getAll(Locales.getLocale()));
                     final Map<String, JSONObject> permissions
@@ -195,8 +178,8 @@ public class ArticleChannel {
                     dataModel.put(Permission.PERMISSIONS, permissions);
                 }
 
-                final Template template = SkinRenderer.getTemplate(templateDirName, "common/comment.ftl",
-                        false, user);
+                final String templateDirName = (String) session.getUserProperties().get(Keys.TEMAPLTE_DIR_NAME);
+                final Template template = Templates.getTemplate(templateDirName + "/common/comment.ftl");
                 final StringWriter stringWriter = new StringWriter();
                 template.process(dataModel, stringWriter);
                 stringWriter.close();
@@ -208,8 +191,6 @@ public class ArticleChannel {
                 }
             } catch (final Exception e) {
                 LOGGER.log(Level.ERROR, "Notify comment error", e);
-            } finally {
-                JdbcRepository.dispose();
             }
         }
     }
@@ -221,7 +202,7 @@ public class ArticleChannel {
      */
     @OnOpen
     public void onConnect(final Session session) {
-        final String articleId = (String) Channels.getHttpParameter(session, Article.ARTICLE_T_ID);
+        final String articleId = Channels.getHttpParameter(session, Article.ARTICLE_T_ID);
         if (StringUtils.isBlank(articleId)) {
             return;
         }
@@ -243,47 +224,6 @@ public class ArticleChannel {
 
         ArticleListChannel.notifyHeat(message);
         notifyHeat(message);
-
-        final JSONObject user = (JSONObject) Channels.getHttpSessionAttribute(session, User.USER);
-        if (null == user) {
-            return;
-        }
-
-        final String userName = user.optString(User.USER_NAME);
-
-        // Timeline
-        final LatkeBeanManager beanManager = LatkeBeanManagerImpl.getInstance();
-        final ArticleRepository articleRepository = beanManager.getReference(ArticleRepository.class);
-        final LangPropsService langPropsService = beanManager.getReference(LangPropsServiceImpl.class);
-        final TimelineMgmtService timelineMgmtService = beanManager.getReference(TimelineMgmtService.class);
-
-        try {
-            final JSONObject article = articleRepository.get(articleId);
-            if (null == article) {
-                return;
-            }
-
-            String articleTitle = Jsoup.parse(article.optString(Article.ARTICLE_TITLE)).text();
-            articleTitle = Emotions.convert(articleTitle);
-
-            final String articlePermalink = Latkes.getServePath() + article.optString(Article.ARTICLE_PERMALINK);
-
-            final JSONObject timeline = new JSONObject();
-            timeline.put(Common.USER_ID, user.optString(Keys.OBJECT_ID));
-            timeline.put(Common.TYPE, Article.ARTICLE);
-            String content = langPropsService.get("timelineInArticleLabel");
-            content = content.replace("{user}", "<a target='_blank' rel='nofollow' href='" + Latkes.getServePath()
-                    + "/member/" + userName + "'>" + userName + "</a>")
-                    .replace("{article}", "<a target='_blank' rel='nofollow' href='" + articlePermalink
-                            + "'>" + articleTitle + "</a>");
-            timeline.put(Common.CONTENT, content);
-
-            timelineMgmtService.addTimeline(timeline);
-        } catch (final Exception e) {
-            LOGGER.log(Level.ERROR, "Timeline error", e);
-        } finally {
-            JdbcRepository.dispose();
-        }
     }
 
     /**
@@ -325,7 +265,7 @@ public class ArticleChannel {
     private void removeSession(final Session session) {
         SESSIONS.remove(session);
 
-        final String articleId = (String) Channels.getHttpParameter(session, Article.ARTICLE_T_ID);
+        final String articleId = Channels.getHttpParameter(session, Article.ARTICLE_T_ID);
         if (StringUtils.isBlank(articleId)) {
             return;
         }
@@ -350,45 +290,5 @@ public class ArticleChannel {
 
         ArticleListChannel.notifyHeat(message);
         notifyHeat(message);
-
-        final JSONObject user = (JSONObject) Channels.getHttpSessionAttribute(session, User.USER);
-        if (null == user) {
-            return;
-        }
-
-        final String userName = user.optString(User.USER_NAME);
-
-        // Timeline
-        final LatkeBeanManager beanManager = LatkeBeanManagerImpl.getInstance();
-        final ArticleRepository articleRepository = beanManager.getReference(ArticleRepository.class);
-        final LangPropsService langPropsService = beanManager.getReference(LangPropsServiceImpl.class);
-        final TimelineMgmtService timelineMgmtService = beanManager.getReference(TimelineMgmtService.class);
-
-        try {
-            final JSONObject article = articleRepository.get(articleId);
-            if (null == article) {
-                return;
-            }
-
-            String articleTitle = Jsoup.parse(article.optString(Article.ARTICLE_TITLE)).text();
-            articleTitle = Emotions.convert(articleTitle);
-            final String articlePermalink = Latkes.getServePath() + article.optString(Article.ARTICLE_PERMALINK);
-
-            final JSONObject timeline = new JSONObject();
-            timeline.put(Common.USER_ID, user.optString(Keys.OBJECT_ID));
-            timeline.put(Common.TYPE, Article.ARTICLE);
-            String content = langPropsService.get("timelineOutArticleLabel");
-            content = content.replace("{user}", "<a target='_blank' rel='nofollow' href='" + Latkes.getServePath()
-                    + "/member/" + userName + "'>" + userName + "</a>")
-                    .replace("{article}", "<a target='_blank' rel='nofollow' href='" + articlePermalink
-                            + "'>" + articleTitle + "</a>");
-            timeline.put(Common.CONTENT, content);
-
-            timelineMgmtService.addTimeline(timeline);
-        } catch (final Exception e) {
-            LOGGER.log(Level.ERROR, "Timeline error", e);
-        } finally {
-            JdbcRepository.dispose();
-        }
     }
 }

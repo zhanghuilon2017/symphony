@@ -1,39 +1,38 @@
 /*
- * Symphony - A modern community (forum/SNS/blog) platform written in Java.
- * Copyright (C) 2012-2017,  b3log.org & hacpai.com
+ * Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+ * Copyright (C) 2012-present, b3log.org
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package org.b3log.symphony.util;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.b3log.latke.logging.Level;
 import org.b3log.latke.logging.Logger;
+import org.b3log.latke.util.Strings;
 import org.b3log.symphony.model.Common;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.SocketTimeoutException;
 import java.net.URL;
 
 /**
  * Geography utilities.
  *
  * @author <a href="http://88250.b3log.org">Liang Ding</a>
- * @version 1.2.2.1, Apr 11, 2016
+ * @version 1.3.0.1, Sep 1, 2018
  * @since 1.3.0
  */
 public final class Geos {
@@ -42,6 +41,12 @@ public final class Geos {
      * Logger.
      */
     private static final Logger LOGGER = Logger.getLogger(Geos.class);
+
+    /**
+     * Private constructor.
+     */
+    private Geos() {
+    }
 
     /**
      * Gets country, province and city of the specified IP.
@@ -56,40 +61,25 @@ public final class Geos {
      * </pre>, returns {@code null} if not found
      */
     public static JSONObject getAddress(final String ip) {
-        final String ak = Symphonys.get("baidu.lbs.ak");
-
-        if (StringUtils.isBlank(ak) || !Networks.isIPv4(ip)) {
+        final String ak = Symphonys.BAIDU_LBS_AK;
+        if (StringUtils.isBlank(ak) || !Strings.isIPv4(ip)) {
             return null;
         }
 
         HttpURLConnection conn = null;
-
         try {
-            final URL url = new URL("http://api.map.baidu.com/location/ip?ip=" + ip
-                    + "&ak=" + ak);
-
+            final URL url = new URL("http://api.map.baidu.com/location/ip?ip=" + ip + "&ak=" + ak);
             conn = (HttpURLConnection) url.openConnection();
-
             conn.setConnectTimeout(1000);
             conn.setReadTimeout(1000);
-
-            final BufferedReader bufferedReader = new BufferedReader(
-                    new InputStreamReader(conn.getInputStream(), "UTF-8"));
-            String line = null;
-
-            final StringBuilder sb = new StringBuilder();
-            while (null != (line = bufferedReader.readLine())) {
-                sb.append(line);
-            }
-
-            final JSONObject data = new JSONObject(sb.toString());
+            final JSONObject data = new JSONObject(IOUtils.toString(conn.getInputStream(), "UTF-8"));
             if (0 != data.optInt("status")) {
-                return getAddressSina(ip); // Try it via Sina API
+                return getAddressTaobao(ip);
             }
 
             final String content = data.optString("address");
             final String country = content.split("\\|")[0];
-            if (!"CN".equals(country) && !"HK".equals(country)) {
+            if (!"CN".equals(country) && !"HK".equals(country) && !"TW".equals(country)) {
                 LOGGER.log(Level.WARN, "Found other country via Baidu [" + country + ", " + ip + "]");
 
                 return null;
@@ -97,9 +87,8 @@ public final class Geos {
 
             final String province = content.split("\\|")[1];
             String city = content.split("\\|")[2];
-
             if ("None".equals(province) || "None".equals(city)) {
-                return getAddressSina(ip); // Try it via Sina API
+                return getAddressTaobao(ip);
             }
 
             city = StringUtils.replace(city, "市", "");
@@ -110,14 +99,10 @@ public final class Geos {
             ret.put(Common.CITY, city);
 
             return ret;
-        } catch (final SocketTimeoutException e) {
-            LOGGER.log(Level.ERROR, "Get location from Baidu timeout [ip=" + ip + "]");
-
-            return null;
         } catch (final Exception e) {
             LOGGER.log(Level.ERROR, "Can't get location from Baidu [ip=" + ip + "]", e);
 
-            return null;
+            return getAddressTaobao(ip);
         } finally {
             if (null != conn) {
                 try {
@@ -130,7 +115,7 @@ public final class Geos {
     }
 
     /**
-     * Gets province, city of the specified IP by Sina API.
+     * Gets province, city of the specified IP by Taobao API.
      *
      * @param ip the specified IP
      * @return address info, for example      <pre>
@@ -140,33 +125,20 @@ public final class Geos {
      * }
      * </pre>, returns {@code null} if not found
      */
-    private static JSONObject getAddressSina(final String ip) {
+    private static JSONObject getAddressTaobao(final String ip) {
         HttpURLConnection conn = null;
-
         try {
-            final URL url = new URL("http://int.dpool.sina.com.cn/iplookup/iplookup.php?ip=" + ip + "&format=json");
-
+            final URL url = new URL("http://ip.taobao.com/service/getIpInfo.php?ip=" + ip);
             conn = (HttpURLConnection) url.openConnection();
-
             conn.setConnectTimeout(1000);
             conn.setReadTimeout(1000);
-
-            final BufferedReader bufferedReader = new BufferedReader(
-                    new InputStreamReader(conn.getInputStream(), "UTF-8"));
-            String line = null;
-
-            final StringBuilder sb = new StringBuilder();
-            while (null != (line = bufferedReader.readLine())) {
-                sb.append(line);
-            }
-
-            final JSONObject data = new JSONObject(sb.toString());
-            if (1 != data.optInt("ret")) {
+            final JSONObject data = new JSONObject(IOUtils.toString(conn.getInputStream(), "UTF-8"));
+            if (0 != data.optInt("code")) {
                 return null;
             }
 
             final String country = data.optString("country");
-            final String province = data.optString("province");
+            final String province = data.optString("region");
             String city = data.optString("city");
             city = StringUtils.replace(city, "市", "");
 
@@ -176,12 +148,8 @@ public final class Geos {
             ret.put(Common.CITY, city);
 
             return ret;
-        } catch (final SocketTimeoutException e) {
-            LOGGER.log(Level.ERROR, "Get location from Sina timeout [ip=" + ip + "]");
-
-            return null;
         } catch (final Exception e) {
-            LOGGER.log(Level.ERROR, "Can't get location from Sina [ip=" + ip + "]", e);
+            LOGGER.log(Level.ERROR, "Can't get location from Taobao [ip=" + ip + "]", e);
 
             return null;
         } finally {
@@ -193,11 +161,5 @@ public final class Geos {
                 }
             }
         }
-    }
-
-    /**
-     * Private constructor.
-     */
-    private Geos() {
     }
 }

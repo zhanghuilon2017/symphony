@@ -1,3 +1,22 @@
+<#--
+
+    Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+    Copyright (C) 2012-present, b3log.org
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
 <#include "../macro-head.ftl">
 <!DOCTYPE html>
 <html>
@@ -19,17 +38,24 @@
                     <div class="ft-gray">${addNormalArticleTipLabel}</div>
                 </div>
                 <div>
+                    <a rel="nofollow" href="${servePath}/post?type=5">
+                        <svg><use xlink:href="#iconAsk"></use></svg> <br/>
+                    ${qnaLabel}
+                    </a>
+                    <div class="ft-gray">${addAskArticleTipLabel}</div>
+                </div>
+                <div>
                     <a href="${servePath}/post?type=3">
                         <svg><use xlink:href="#video"></use></svg> <br/>
                         ${thoughtLabel}
                     </a>
                     <div class="ft-gray">
                         ${addThoughtArticleTipLabel}
-                        <a href="https://hacpai.com/article/1441942422856" target="_blank">(?)</a>
+                        <a href="${servePath}/about" target="_blank">(?)</a>
                     </div>
                 </div>
                 <div>
-                    <a href="${servePath}/post?type=1">
+                    <a href="${servePath}/post?type=1&tags=${discussionLabel}">
                         <svg><use xlink:href="#locked"></use></svg> <br/>
                         ${discussionLabel}
                     </a>

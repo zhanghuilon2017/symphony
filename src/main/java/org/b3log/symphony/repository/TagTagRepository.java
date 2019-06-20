@@ -1,19 +1,19 @@
 /*
- * Symphony - A modern community (forum/SNS/blog) platform written in Java.
- * Copyright (C) 2012-2017,  b3log.org & hacpai.com
+ * Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+ * Copyright (C) 2012-present, b3log.org
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package org.b3log.symphony.repository;
 
@@ -40,11 +40,6 @@ import java.util.List;
 public class TagTagRepository extends AbstractRepository {
 
     /**
-     * Weight threshold.
-     */
-    private static final int WEIGHT = Symphonys.getInt("tagRelatedWeight");
-
-    /**
      * Public constructor.
      */
     public TagTagRepository() {
@@ -54,9 +49,9 @@ public class TagTagRepository extends AbstractRepository {
     /**
      * Gets tag-tag relations by the specified tag1 id.
      *
-     * @param tag1Id the specified tag1 id
+     * @param tag1Id         the specified tag1 id
      * @param currentPageNum the specified current page number, MUST greater then {@code 0}
-     * @param pageSize the specified page size(count of a page contains objects), MUST greater then {@code 0}
+     * @param pageSize       the specified page size(count of a page contains objects), MUST greater then {@code 0}
      * @return for example      <pre>
      * {
      *     "pagination": {
@@ -70,17 +65,16 @@ public class TagTagRepository extends AbstractRepository {
      *     }, ....]
      * }
      * </pre>
-     *
      * @throws RepositoryException repository exception
      */
     public JSONObject getByTag1Id(final String tag1Id, final int currentPageNum, final int pageSize)
             throws RepositoryException {
         final List<Filter> filters = new ArrayList<>();
         filters.add(new PropertyFilter(Tag.TAG + "1_" + Keys.OBJECT_ID, FilterOperator.EQUAL, tag1Id));
-        filters.add(new PropertyFilter(Common.WEIGHT, FilterOperator.GREATER_THAN_OR_EQUAL, WEIGHT));
+        filters.add(new PropertyFilter(Common.WEIGHT, FilterOperator.GREATER_THAN_OR_EQUAL, Symphonys.TAG_RELATED_WEIGHT));
 
         final Query query = new Query().setFilter(new CompositeFilter(CompositeFilterOperator.AND, filters)).
-                setCurrentPageNum(currentPageNum).setPageSize(pageSize).setPageCount(1).
+                setPage(currentPageNum, pageSize).setPageCount(1).
                 addSort(Common.WEIGHT, SortDirection.DESCENDING);
 
         return get(query);
@@ -89,9 +83,9 @@ public class TagTagRepository extends AbstractRepository {
     /**
      * Gets tag-tag relations by the specified tag2 id.
      *
-     * @param tag2Id the specified tag2 id
+     * @param tag2Id         the specified tag2 id
      * @param currentPageNum the specified current page number, MUST greater then {@code 0}
-     * @param pageSize the specified page size(count of a page contains objects), MUST greater then {@code 0}
+     * @param pageSize       the specified page size(count of a page contains objects), MUST greater then {@code 0}
      * @return for example      <pre>
      * {
      *     "pagination": {
@@ -105,17 +99,16 @@ public class TagTagRepository extends AbstractRepository {
      *     }, ....]
      * }
      * </pre>
-     *
      * @throws RepositoryException repository exception
      */
     public JSONObject getByTag2Id(final String tag2Id, final int currentPageNum, final int pageSize)
             throws RepositoryException {
         final List<Filter> filters = new ArrayList<>();
         filters.add(new PropertyFilter(Tag.TAG + "2_" + Keys.OBJECT_ID, FilterOperator.EQUAL, tag2Id));
-        filters.add(new PropertyFilter(Common.WEIGHT, FilterOperator.GREATER_THAN_OR_EQUAL, WEIGHT));
+        filters.add(new PropertyFilter(Common.WEIGHT, FilterOperator.GREATER_THAN_OR_EQUAL, Symphonys.TAG_RELATED_WEIGHT));
 
         final Query query = new Query().setFilter(new CompositeFilter(CompositeFilterOperator.AND, filters)).
-                setCurrentPageNum(currentPageNum).setPageSize(pageSize).setPageCount(1).
+                setPage(currentPageNum, pageSize).setPageCount(1).
                 addSort(Common.WEIGHT, SortDirection.DESCENDING);
 
         return get(query);
@@ -134,7 +127,6 @@ public class TagTagRepository extends AbstractRepository {
      *     "weight": int
      * }, returns {@code null} if not found
      * </pre>
-     *
      * @throws RepositoryException repository exception
      */
     public JSONObject getByTag1IdAndTag2Id(final String tag1Id, final String tag2Id)

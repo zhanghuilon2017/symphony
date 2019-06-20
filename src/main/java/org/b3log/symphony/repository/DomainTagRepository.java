@@ -1,19 +1,19 @@
 /*
- * Symphony - A modern community (forum/SNS/blog) platform written in Java.
- * Copyright (C) 2012-2017,  b3log.org & hacpai.com
+ * Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+ * Copyright (C) 2012-present, b3log.org
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package org.b3log.symphony.repository;
 
@@ -45,9 +45,9 @@ public class DomainTagRepository extends AbstractRepository {
     /**
      * Gets domain-tag relations by the specified domain id.
      *
-     * @param domainId the specified domain id
+     * @param domainId       the specified domain id
      * @param currentPageNum the specified current page number, MUST greater then {@code 0}
-     * @param pageSize the specified page size(count of a page contains objects), MUST greater then {@code 0}
+     * @param pageSize       the specified page size(count of a page contains objects), MUST greater then {@code 0}
      * @return for example      <pre>
      * {
      *     "pagination": {
@@ -60,14 +60,13 @@ public class DomainTagRepository extends AbstractRepository {
      *     }, ....]
      * }
      * </pre>
-     *
      * @throws RepositoryException repository exception
      */
     public JSONObject getByDomainId(final String domainId, final int currentPageNum, final int pageSize)
             throws RepositoryException {
         final Query query = new Query().
                 setFilter(new PropertyFilter(Domain.DOMAIN + "_" + Keys.OBJECT_ID, FilterOperator.EQUAL, domainId)).
-                setCurrentPageNum(currentPageNum).setPageSize(pageSize).setPageCount(1);
+                setPage(currentPageNum, pageSize).setPageCount(1);
 
         return get(query);
     }
@@ -91,9 +90,9 @@ public class DomainTagRepository extends AbstractRepository {
     /**
      * Gets domain-tag relations by the specified tag id.
      *
-     * @param tagId the specified tag id
+     * @param tagId          the specified tag id
      * @param currentPageNum the specified current page number, MUST greater then {@code 0}
-     * @param pageSize the specified page size(count of a page contains objects), MUST greater then {@code 0}
+     * @param pageSize       the specified page size(count of a page contains objects), MUST greater then {@code 0}
      * @return for example      <pre>
      * {
      *     "pagination": {
@@ -106,14 +105,13 @@ public class DomainTagRepository extends AbstractRepository {
      *     }, ....]
      * }
      * </pre>
-     *
      * @throws RepositoryException repository exception
      */
     public JSONObject getByTagId(final String tagId, final int currentPageNum, final int pageSize)
             throws RepositoryException {
         final Query query = new Query().
                 setFilter(new PropertyFilter(Tag.TAG + "_" + Keys.OBJECT_ID, FilterOperator.EQUAL, tagId)).
-                setCurrentPageNum(currentPageNum).setPageSize(pageSize).setPageCount(1);
+                setPage(currentPageNum, pageSize).setPageCount(1);
 
         return get(query);
     }

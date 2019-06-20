@@ -1,3 +1,22 @@
+<#--
+
+    Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+    Copyright (C) 2012-present, b3log.org
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->
 <#include "macro-admin.ftl">
 <@admin "tags">
 <div class="wrapper">
@@ -10,13 +29,13 @@
             <input type="text" id="oId" value="${tag.oId}" readonly="readonly" />
 
             <label for="tagReferenceCount">${refCountLabel}</label>
-            <input type="text" id="tagReferenceCount" name="tagReferenceCount" value="${tag.tagReferenceCount}" readonly="readonly" />
+            <input type="text" id="tagReferenceCount" name="tagReferenceCount" value="${tag.tagReferenceCount?c}" readonly="readonly" />
 
             <label for="tagCommentCount">${commentCountLabel}</label>
-            <input type="text" id="tagCommentCount" name="tagCommentCount" value="${tag.tagCommentCount}" readonly="readonly" />
+            <input type="text" id="tagCommentCount" name="tagCommentCount" value="${tag.tagCommentCount?c}" readonly="readonly" />
 
             <label for="tagFollowerCount">${followerCountLabel}</label>
-            <input type="text" id="tagFollowerCount" name="tagFollowerCount" value="${tag.tagFollowerCount}" />
+            <input type="text" id="tagFollowerCount" name="tagFollowerCount" value="${tag.tagFollowerCount?c}" />
         </div>
     </div>
     <#if permissions["tagUpdateTagBasic"].permissionGrant>
@@ -61,6 +80,15 @@
 
                 <label for="tagCSS">CSS</label>
                 <textarea rows="20" id="tagCSS" name="tagCSS">${tag.tagCSS}</textarea>
+
+                <label for="tagAd">${adPosLabel}</label>
+                <textarea rows="5" id="tagAd" name="tagAd">${tag.tagAd}</textarea>
+
+                <label>${showSideAdLabel}</label>
+                <select id="tagShowSideAd" name="tagShowSideAd">
+                    <option value="0"<#if 0 == tag.tagShowSideAd> selected</#if>>${yesLabel}</option>
+                    <option value="1"<#if 1 == tag.tagShowSideAd> selected</#if>>${noLabel}</option>
+                </select>
 
                 <br/><br/>
                 <button type="submit" class="green fn-right">${submitLabel}</button>

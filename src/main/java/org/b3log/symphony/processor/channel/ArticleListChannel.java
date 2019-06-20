@@ -1,19 +1,19 @@
 /*
- * Symphony - A modern community (forum/SNS/blog) platform written in Java.
- * Copyright (C) 2012-2017,  b3log.org & hacpai.com
+ * Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+ * Copyright (C) 2012-present, b3log.org
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package org.b3log.symphony.processor.channel;
 
@@ -38,14 +38,14 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ArticleListChannel {
 
     /**
-     * Session articles &lt;session, "articleId1,articleId2"&gt;.
-     */
-    public static final Map<Session, String> SESSIONS = new ConcurrentHashMap<>();
-
-    /**
      * Logger.
      */
     private static final Logger LOGGER = Logger.getLogger(ArticleListChannel.class);
+
+    /**
+     * Session articles &lt;session, "articleId1,articleId2"&gt;.
+     */
+    public static final Map<Session, String> SESSIONS = new ConcurrentHashMap<>();
 
     /**
      * Notifies the specified article heat message to browsers.
@@ -81,7 +81,7 @@ public class ArticleListChannel {
      */
     @OnOpen
     public void onConnect(final Session session) {
-        final String articleIds = (String) Channels.getHttpParameter(session, Article.ARTICLE_T_IDS);
+        final String articleIds = Channels.getHttpParameter(session, Article.ARTICLE_T_IDS);
         if (StringUtils.isBlank(articleIds)) {
             return;
         }

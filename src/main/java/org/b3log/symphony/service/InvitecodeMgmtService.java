@@ -1,25 +1,25 @@
 /*
- * Symphony - A modern community (forum/SNS/blog) platform written in Java.
- * Copyright (C) 2012-2017,  b3log.org & hacpai.com
+ * Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+ * Copyright (C) 2012-present, b3log.org
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package org.b3log.symphony.service;
 
 import org.apache.commons.lang.RandomStringUtils;
 import org.b3log.latke.Keys;
-import org.b3log.latke.ioc.inject.Inject;
+import org.b3log.latke.ioc.Inject;
 import org.b3log.latke.logging.Level;
 import org.b3log.latke.logging.Logger;
 import org.b3log.latke.repository.*;
@@ -60,9 +60,9 @@ public class InvitecodeMgmtService {
     @Transactional
     public void expireInvitecodes() {
         final long now = System.currentTimeMillis();
-        final long expired = now - Symphonys.getLong("invitecode.expired");
+        final long expired = now - Symphonys.INVITECODE_EXPIRED;
 
-        final Query query = new Query().setCurrentPageNum(1).setPageSize(Integer.MAX_VALUE).
+        final Query query = new Query().setPage(1, Integer.MAX_VALUE).
                 setFilter(CompositeFilterOperator.and(
                         new PropertyFilter(Invitecode.STATUS, FilterOperator.EQUAL, Invitecode.STATUS_C_UNUSED),
                         new PropertyFilter(Invitecode.GENERATOR_ID, FilterOperator.NOT_EQUAL, Pointtransfer.ID_C_SYS),
@@ -133,9 +133,8 @@ public class InvitecodeMgmtService {
      *
      * @param quantity the specified quantity
      * @param memo     the specified memo
-     * @throws ServiceException service exception
      */
-    public void adminGenInvitecodes(final int quantity, final String memo) throws ServiceException {
+    public void adminGenInvitecodes(final int quantity, final String memo) {
         final Transaction transaction = invitecodeRepository.beginTransaction();
 
         try {
@@ -158,7 +157,6 @@ public class InvitecodeMgmtService {
             }
 
             LOGGER.log(Level.ERROR, "Generates invitecodes failed", e);
-            throw new ServiceException(e);
         }
     }
 

@@ -1,28 +1,28 @@
 /*
- * Symphony - A modern community (forum/SNS/blog) platform written in Java.
- * Copyright (C) 2012-2017,  b3log.org & hacpai.com
+ * Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+ * Copyright (C) 2012-present, b3log.org
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package org.b3log.symphony.processor.advice.stopwatch;
 
 import org.b3log.latke.logging.Level;
 import org.b3log.latke.logging.Logger;
 import org.b3log.latke.service.annotation.Service;
-import org.b3log.latke.servlet.HTTPRequestContext;
-import org.b3log.latke.servlet.advice.AfterRequestProcessAdvice;
-import org.b3log.latke.servlet.renderer.AbstractHTTPResponseRenderer;
+import org.b3log.latke.servlet.RequestContext;
+import org.b3log.latke.servlet.advice.ProcessAdvice;
+import org.b3log.latke.servlet.renderer.AbstractResponseRenderer;
 import org.b3log.latke.util.Stopwatchs;
 import org.b3log.latke.util.Strings;
 import org.b3log.symphony.model.Common;
@@ -37,7 +37,7 @@ import java.util.Map;
  * @since 0.2.0
  */
 @Service
-public class StopwatchEndAdvice extends AfterRequestProcessAdvice {
+public class StopwatchEndAdvice extends ProcessAdvice {
 
     /**
      * Logger.
@@ -45,15 +45,15 @@ public class StopwatchEndAdvice extends AfterRequestProcessAdvice {
     private static final Logger LOGGER = Logger.getLogger(StopwatchEndAdvice.class);
 
     @Override
-    public void doAdvice(final HTTPRequestContext context, final Object ret) {
+    public void doAdvice(final RequestContext context) {
         Stopwatchs.end();
 
-        final AbstractHTTPResponseRenderer renderer = context.getRenderer();
+        final AbstractResponseRenderer renderer = context.getRenderer();
         if (null != renderer) {
             final Map<String, Object> dataModel = renderer.getRenderDataModel();
             final String requestURI = context.getRequest().getRequestURI();
 
-            final long elapsed = Stopwatchs.getElapsed("Request URI [" + requestURI + ']');
+            final long elapsed = Stopwatchs.getElapsed("Request URI [" + requestURI + "]");
             dataModel.put(Common.ELAPSED, elapsed);
         }
 

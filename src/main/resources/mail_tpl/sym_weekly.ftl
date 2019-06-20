@@ -66,7 +66,7 @@
                             <tr style="border-collapse:collapse">
                                 <td width="640" align="center" bgcolor="#FFFFFF" style="border-collapse:collapse;font-family:Helvetica,Arial,sans-serif">
                                     <a href="${servePath}" target="_blank">
-                                        <img height="140" width="640" src="${staticServePath}/images/mail/weekly-banner3.png" alt="黑客派">
+                                        <img height="140" width="640" src="${staticServePath}/images/mail/weekly-banner3.png" alt="Sym">
                                     </a>
                                 </td>
                             </tr>
@@ -206,15 +206,11 @@
                                                             <span>
                                                                 <a href="${servePath}/about" style="color:#4183c4;font-weight:bold;text-decoration:none" target="_blank">关于</a> 
                                                                 <span style="color:#999">•</span>
-                                                                <a href="${servePath}/article/1457158841475" style="color:#4183c4;font-weight:bold;text-decoration:none" target="_blank">API</a>
                                                                 <span style="color:#999">•</span>
                                                                 <a href="${servePath}/perfect" style="color:#4183c4;font-weight:bold;text-decoration:none" target="_blank">优选</a> 
                                                                 <span style="color:#999">•</span>
-                                                                <a href="${servePath}/hot" style="color:#4183c4;font-weight:bold;text-decoration:none" target="_blank">热门</a> 
+                                                                <a href="${servePath}/tag/announcement" style="color:#4183c4;font-weight:bold;text-decoration:none" target="_blank">公告</a>
                                                                 <span style="color:#999">•</span>
-                                                                <a href="${servePath}/forge/link" style="color:#4183c4;font-weight:bold;text-decoration:none" target="_blank">链接熔炉</a> 
-                                                                <span style="color:#999">•</span>
-                                                                <a href="${servePath}/article/1460083956075" style="color:#4183c4;font-weight:bold;text-decoration:none" target="_blank">广告投放</a>
                                                             </span>
                                                         </p>
                                                     </span>

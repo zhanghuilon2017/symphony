@@ -1,25 +1,25 @@
 /*
- * Symphony - A modern community (forum/SNS/blog) platform written in Java.
- * Copyright (C) 2012-2017,  b3log.org & hacpai.com
+ * Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+ * Copyright (C) 2012-present, b3log.org
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package org.b3log.symphony.service;
 
 import org.apache.commons.lang.time.DateUtils;
 import org.b3log.latke.Keys;
-import org.b3log.latke.ioc.inject.Inject;
+import org.b3log.latke.ioc.Inject;
 import org.b3log.latke.logging.Level;
 import org.b3log.latke.logging.Logger;
 import org.b3log.latke.repository.Query;
@@ -32,11 +32,9 @@ import org.b3log.symphony.model.Pointtransfer;
 import org.b3log.symphony.model.UserExt;
 import org.b3log.symphony.repository.PointtransferRepository;
 import org.b3log.symphony.repository.UserRepository;
-import org.b3log.symphony.util.Symphonys;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -44,7 +42,7 @@ import java.util.List;
  * Activity query service.
  *
  * @author <a href="http://88250.b3log.org">Liang Ding</a>
- * @version 1.5.1.5, Sep 23, 2016
+ * @version 1.5.2.0, May 9, 2018
  * @since 1.3.0
  */
 @Service
@@ -93,11 +91,10 @@ public class ActivityQueryService {
     /**
      * Gets the top eating snake users (single game max) with the specified fetch size.
      *
-     * @param avatarViewMode the specified avatar view mode
-     * @param fetchSize      the specified fetch size
+     * @param fetchSize the specified fetch size
      * @return users, returns an empty list if not found
      */
-    public List<JSONObject> getTopEatingSnakeUsersMax(final int avatarViewMode, final int fetchSize) {
+    public List<JSONObject> getTopEatingSnakeUsersMax(final int fetchSize) {
         final List<JSONObject> ret = new ArrayList<>();
 
         try {
@@ -116,7 +113,7 @@ public class ActivityQueryService {
                     + "LIMIT ?", fetchSize);
 
             for (final JSONObject user : users) {
-                avatarQueryService.fillUserAvatarURL(avatarViewMode, user);
+                avatarQueryService.fillUserAvatarURL(user);
 
                 ret.add(user);
             }
@@ -130,11 +127,10 @@ public class ActivityQueryService {
     /**
      * Gets the top eating snake users (sum) with the specified fetch size.
      *
-     * @param avatarViewMode the specified avatar view mode
-     * @param fetchSize      the specified fetch size
+     * @param fetchSize the specified fetch size
      * @return users, returns an empty list if not found
      */
-    public List<JSONObject> getTopEatingSnakeUsersSum(final int avatarViewMode, final int fetchSize) {
+    public List<JSONObject> getTopEatingSnakeUsersSum(final int fetchSize) {
         final List<JSONObject> ret = new ArrayList<>();
 
         try {
@@ -153,7 +149,7 @@ public class ActivityQueryService {
                     + "LIMIT ?", fetchSize);
 
             for (final JSONObject user : users) {
-                avatarQueryService.fillUserAvatarURL(avatarViewMode, user);
+                avatarQueryService.fillUserAvatarURL(user);
 
                 ret.add(user);
             }
@@ -167,16 +163,15 @@ public class ActivityQueryService {
     /**
      * Gets the top checkin users with the specified fetch size.
      *
-     * @param avatarViewMode the specified avatar view mode
-     * @param fetchSize      the specified fetch size
+     * @param fetchSize the specified fetch size
      * @return users, returns an empty list if not found
      */
-    public List<JSONObject> getTopCheckinUsers(final int avatarViewMode, final int fetchSize) {
+    public List<JSONObject> getTopCheckinUsers(final int fetchSize) {
         final List<JSONObject> ret = new ArrayList<>();
 
         final Query query = new Query().addSort(UserExt.USER_LONGEST_CHECKIN_STREAK, SortDirection.DESCENDING).
                 addSort(UserExt.USER_CURRENT_CHECKIN_STREAK, SortDirection.DESCENDING).
-                setCurrentPageNum(1).setPageSize(fetchSize);
+                setPage(1, fetchSize);
 
         try {
             final JSONObject result = userRepository.get(query);
@@ -189,7 +184,7 @@ public class ActivityQueryService {
                     user.put(UserExt.USER_T_POINT_CC, UserExt.toCCString(user.optInt(UserExt.USER_POINT)));
                 }
 
-                avatarQueryService.fillUserAvatarURL(avatarViewMode, user);
+                avatarQueryService.fillUserAvatarURL(user);
 
                 ret.add(user);
             }
@@ -209,19 +204,22 @@ public class ActivityQueryService {
     public synchronized boolean isCheckedinToday(final String userId) {
         Stopwatchs.start("Checks checkin");
         try {
-            final Calendar calendar = Calendar.getInstance();
-            final int hour = calendar.get(Calendar.HOUR_OF_DAY);
-            if (hour < Symphonys.getInt("activityDailyCheckinTimeMin")
-                    || hour > Symphonys.getInt("activityDailyCheckinTimeMax")) {
+            final JSONObject user = userRepository.get(userId);
+            final long time = user.optLong(UserExt.USER_CHECKIN_TIME);
+            if (DateUtils.isSameDay(new Date(), new Date(time))) {
                 return true;
             }
 
-            final Date now = new Date();
+            // 使用缓存检查在某个竞态条件下会有问题。如果缓存检查没有签到，则再查库判断
+            final List<JSONObject> latestPointtransfers = pointtransferQueryService.getLatestPointtransfers(userId, Pointtransfer.TRANSFER_TYPE_C_ACTIVITY_CHECKIN, 1);
+            if (latestPointtransfers.isEmpty()) {
+                return false;
+            }
 
-            final JSONObject user = userRepository.get(userId);
+            final JSONObject latestPointtransfer = latestPointtransfers.get(0);
+            final long checkinTime = latestPointtransfer.optLong(Pointtransfer.TIME);
 
-            final long time = user.optLong(UserExt.USER_CHECKIN_TIME);
-            return DateUtils.isSameDay(now, new Date(time));
+            return DateUtils.isSameDay(new Date(), new Date(checkinTime));
         } catch (final Exception e) {
             LOGGER.log(Level.ERROR, "Checks checkin failed", e);
 

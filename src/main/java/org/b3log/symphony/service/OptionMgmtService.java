@@ -1,28 +1,27 @@
 /*
- * Symphony - A modern community (forum/SNS/blog) platform written in Java.
- * Copyright (C) 2012-2017,  b3log.org & hacpai.com
+ * Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+ * Copyright (C) 2012-present, b3log.org
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package org.b3log.symphony.service;
 
-import org.b3log.latke.ioc.inject.Inject;
+import org.b3log.latke.ioc.Inject;
 import org.b3log.latke.logging.Level;
 import org.b3log.latke.logging.Logger;
 import org.b3log.latke.repository.RepositoryException;
 import org.b3log.latke.repository.Transaction;
-import org.b3log.latke.service.ServiceException;
 import org.b3log.latke.service.annotation.Service;
 import org.b3log.symphony.repository.OptionRepository;
 import org.json.JSONObject;
@@ -94,10 +93,9 @@ public class OptionMgmtService {
      * Updates the specified option by the given option id.
      *
      * @param optionId the given option id
-     * @param option the specified option
-     * @throws ServiceException service exception
+     * @param option   the specified option
      */
-    public void updateOption(final String optionId, final JSONObject option) throws ServiceException {
+    public void updateOption(final String optionId, final JSONObject option) {
         final Transaction transaction = optionRepository.beginTransaction();
 
         try {
@@ -110,7 +108,6 @@ public class OptionMgmtService {
             }
 
             LOGGER.log(Level.ERROR, "Updates an option[id=" + optionId + "] failed", e);
-            throw new ServiceException(e);
         }
     }
 }

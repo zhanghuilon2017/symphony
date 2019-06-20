@@ -1,22 +1,23 @@
 /*
- * Symphony - A modern community (forum/SNS/blog) platform written in Java.
- * Copyright (C) 2012-2017,  b3log.org & hacpai.com
+ * Symphony - A modern community (forum/BBS/SNS/blog) platform written in Java.
+ * Copyright (C) 2012-present, b3log.org
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package org.b3log.symphony.processor.channel;
 
+import org.b3log.latke.Keys;
 import org.b3log.latke.logging.Logger;
 
 import javax.servlet.http.HttpSession;
@@ -31,7 +32,7 @@ import java.util.Map;
  * Channel utilities.
  *
  * @author <a href="http://88250.b3log.org">Liang Ding</a>
- * @version 2.0.2.2, Feb 28, 2016
+ * @version 2.0.2.3, Sep 27, 2018
  * @since 1.4.0
  */
 public final class Channels {
@@ -45,24 +46,24 @@ public final class Channels {
      * WebSocket configurator.
      *
      * @author <a href="http://88250.b3log.org">Liang Ding</a>
-     * @version 1.0.0.0, Feb 28, 2016
+     * @version 1.0.0.1, Sep 27, 2018
      * @since 1.4.0
      */
     public static class WebSocketConfigurator extends ServerEndpointConfig.Configurator {
 
         @Override
-        public void modifyHandshake(final ServerEndpointConfig config,
-                final HandshakeRequest request, final HandshakeResponse response) {
+        public void modifyHandshake(final ServerEndpointConfig config, final HandshakeRequest request, final HandshakeResponse response) {
             final HttpSession httpSession = (HttpSession) request.getHttpSession();
-
             config.getUserProperties().put(HttpSession.class.getName(), httpSession);
+            final String skin = (String) httpSession.getAttribute(Keys.TEMAPLTE_DIR_NAME);
+            config.getUserProperties().put(Keys.TEMAPLTE_DIR_NAME, skin);
         }
     }
 
     /**
      * Gets a parameter of the specified HTTP session by the given session.
      *
-     * @param session the given session
+     * @param session       the given session
      * @param parameterName the specified parameter name
      * @return parameter value, returns {@code null} if the parameter does not exist
      */
@@ -85,7 +86,7 @@ public final class Channels {
     /**
      * Gets an attribute of the specified HTTP session by the given session.
      *
-     * @param session the given session
+     * @param session       the given session
      * @param attributeName the specified attribute name
      * @return attribute, returns {@code null} if not found or occurred exception
      */
